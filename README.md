@@ -12,6 +12,7 @@
 | <center>4</center> | Фронт: страницы профиля, регистрации/авторизации | Денис Т       | <center>❌️️️️️️️</center> |
 | <center>5</center> | Фронт: страницы фильмов, афиши                   | Денис         | <center>❌️️️️️️️</center> |
 | <center>6</center> | Начала девопса                                   | Влад Б        | <center>❌️️️️️️️</center> |
+| <center>7</center> | Миграции с alembic                               | Арсений М     | <center>❌️️️️️️️</center> |
 
 ### Разрабы
 - Владислав Бухарин [@Vladbukharin](https://t.me/Vladbukharin)
