@@ -4,6 +4,7 @@ from fastapi.responses import JSONResponse
 
 from api.ping import router as ping_router
 from api.users import router as users_router
+from api.payments import router as payments_router
 
 
 app = FastAPI(
@@ -15,6 +16,7 @@ app = FastAPI(
 
 app.include_router(ping_router)
 app.include_router(users_router)
+app.include_router(payments_router, prefix="/payments", tags=["payments"])
 
 
 if __name__ == "__main__":
