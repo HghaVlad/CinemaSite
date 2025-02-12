@@ -11,3 +11,4 @@ router = APIRouter(tags=["users"])
 async def get_user(user_id: int, user_service=Depends(get_user_service)):
     user = await user_service.get_user_by_id(user_id)
     return {"user": user}
+
