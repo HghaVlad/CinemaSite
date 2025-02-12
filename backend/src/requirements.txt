@@ -10,3 +10,4 @@ async-lru==2.0.4
 bcrypt==4.0.1
 passlib==1.7.4
 email-validator==2.2.0
+greenlet==3.1.1

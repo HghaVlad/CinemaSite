@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 
 from api.ping import router as ping_router
 from api.users import router as users_router
-from api.signup import router as signup_router
-from api.signin import router as signin_router
+from api.auth import router as auth_router
+
 
 app = FastAPI(
     title="Сайт для Кинотеатра",
@@ -17,8 +17,7 @@ app = FastAPI(
 app.include_router(ping_router)
 app.include_router(users_router)
 
-app.include_router(signup_router)
-app.include_router(signin_router)
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
