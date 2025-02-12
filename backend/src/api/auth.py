@@ -9,7 +9,7 @@ router = APIRouter(tags=["auth"])
 
 
 @router.post("/signin")
-async def submit_form(signin_data: SignInRequest, user_service: UsersService = Depends(get_user_service),
+async def signin(signin_data: SignInRequest, user_service: UsersService = Depends(get_user_service),
                       session: AsyncSession = Depends(get_postgres_session)):
     user_id = await user_service.authenticate_user(signin_data, session)
     response = JSONResponse(status_code=200, content={"status": "success"})
@@ -18,7 +18,7 @@ async def submit_form(signin_data: SignInRequest, user_service: UsersService = D
 
 
 @router.post("/signup")
-async def submit_form(signup_data: SignUpRequest, user_service: UsersService = Depends(get_user_service),
+async def signup(signup_data: SignUpRequest, user_service: UsersService = Depends(get_user_service),
                       session: AsyncSession = Depends(get_postgres_session)):
     user = await user_service.register_user(signup_data, session)
     response = JSONResponse(status_code=200, content={"status": "success"})
