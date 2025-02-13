@@ -9,6 +9,7 @@ from starlette import status
 from models.users import User
 from db.postgres import get_postgres_session
 from schemas.auth import SignUpRequest, SignInRequest
+from utils import send_registration_email
 
 
 class UsersService:
@@ -36,6 +37,7 @@ class UsersService:
         session.add(user)
         await session.commit()
         await session.refresh(user)
+        await send_registration_email(data.email, data.name)
         return user
 
     async def authenticate_user(self, data: SignInRequest, session: AsyncSession) -> int:
