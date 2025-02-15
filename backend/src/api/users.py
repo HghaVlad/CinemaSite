@@ -29,6 +29,16 @@ async def update_me_user(request: Request, user_service=Depends(get_user_service
                       session: AsyncSession = Depends(get_postgres_session)):
     """
     Updates user's email, name, surname
+    Request is expected to have "reset_password" field and if it exists and is true,
+    new password will be generated and sent to new email
+    Possible issue: entered email is not valid but password is changed and user never gets it
+    Possible solution: have an url in email to confirm the changes (e.g. by asking to sing up with new data)
     """
+
     user = user_service.update_user_data(request, session)
+
+    if request.cookies.get("reset_password") and request.cookies.get("reset_password") == True:
+        user = user_service.reset_password()
+
+
     return UserResponse.from_orm(user)

@@ -1,6 +1,4 @@
-import random
 import re
-import string
 from functools import lru_cache
 from fastapi.exceptions import HTTPException
 from fastapi import Request
@@ -13,7 +11,7 @@ from starlette import status
 from models.users import User
 from db.postgres import get_postgres_session
 from schemas.auth import SignUpRequest, SignInRequest
-from utils import send_registration_email
+from utils import send_registration_email, is_password_strong, is_name_or_surname_valid, generate_new_password, send_reset_password_email
 
 
 class UsersService:
@@ -55,11 +53,11 @@ class UsersService:
         # Checking if name and surname are correct, invalid email format should be caught by pydantic EmailStr
         name = data.name.strip()
         surname = data.surname.strip()
-        self.is_name_or_surname_valid(name, "Name")
-        self.is_name_or_surname_valid(surname, "Surname")
+        is_name_or_surname_valid(name, "Name")
+        is_name_or_surname_valid(surname, "Surname")
 
         # Checking if password is strong enough
-        is_pwd_strong, pwd_msg = self.is_password_strong(data.password)
+        is_pwd_strong, pwd_msg = is_password_strong(data.password)
         if not is_pwd_strong:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -72,7 +70,7 @@ class UsersService:
         session.add(user)
         await session.commit()
         await session.refresh(user)
-        await send_registration_email(data.email, data.name)
+        await send_registration_email(str(data.email), data.name)
         return user
 
 
@@ -95,14 +93,14 @@ class UsersService:
     # Not working
     async def remove_user(self, user_id: int):
         async with get_postgres_session() as session:
-            user = await self.get_user_by_id(user_id)
+            user = await self.get_user_by_id(user_id, session)
             await session.delete(user)
             await session.commit()
 
 
     async def update_user_data(self, request: Request, session: AsyncSession):
         """
-            Updates user's email, name, surname if they are valid
+        Updates user's email, name, surname if they are valid
         """
         user = await self.get_user_by_cookie_request(request, session)
 
@@ -111,7 +109,6 @@ class UsersService:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail="Email or name or surname are missing in the http request cookies",
             )
-
 
         email = request.cookies.get("email").strip()
         if re.match(self.EmailRegex, email):
@@ -123,11 +120,11 @@ class UsersService:
             )
 
         name = request.cookies.get("name").strip()
-        if self.is_name_or_surname_valid(name, "Name"):
+        if is_name_or_surname_valid(name, "Name"):
             user.name = name
 
         surname = request.cookies.get("surname").strip()
-        if self.is_name_or_surname_valid(name, "Surname"):
+        if is_name_or_surname_valid(name, "Surname"):
             user.surname = surname
 
         await session.commit()
@@ -135,76 +132,16 @@ class UsersService:
         return user
 
 
-    def is_password_strong(self, password) -> (bool, str):
-        """
-        Validates if a password is strong based on the following rules:
-        - At least 8 characters long
-        - Contains at least one uppercase letter
-        - Contains at least one lowercase letter
-        - Contains at least one digit
-        """
-        # Minimum length
-        if len(password) < 8:
-            return False, "Password must be at least 8 characters long."
+    async def reset_password(self, request: Request, session: AsyncSession):
+        user = await self.get_user_by_cookie_request(request, session)
+        new_password = generate_new_password()
+        await send_reset_password_email(str(user.email), str(user.name), new_password)
+        user.hashed_password = self.PasswordContext.hash(new_password)
 
-        # At least one uppercase letter
-        if not re.search(r'[A-Z]', password):
-            return False, "Password must contain at least one uppercase letter."
+        await session.commit()
+        await session.refresh(user)
+        return user
 
-        # At least one lowercase letter
-        if not re.search(r'[a-z]', password):
-            return False, "Password must contain at least one lowercase letter."
-
-        # At least one digit
-        if not re.search(r'[0-9]', password):
-            return False, "Password must contain at least one digit."
-
-        # If all checks pass
-        return True, "Password is strong."
-
-
-    def is_name_or_surname_valid(self, name: str, first_or_last: str) -> bool:
-        if name.isalpha() and len(name) >= 2:
-            return True
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"{first_or_last} should consist of 2 or more alphabetic characters"
-            )
-
-
-    def generate_new_password(self):
-        """
-        Generates a random password that meets the following criteria:
-        - 8-16 characters long.
-        - Contains at least one lowercase letter.
-        - Contains at least one uppercase letter.
-        - Contains at least one digit.
-        """
-
-        length = random.randint(8, 16)
-
-        # Define character sets
-        lowercase = string.ascii_lowercase
-        uppercase = string.ascii_uppercase
-        digits = string.digits
-
-        # Ensure at least one character from each set
-        password = [
-            random.choice(lowercase),
-            random.choice(uppercase),
-            random.choice(digits),
-        ]
-
-        # Fill the rest of the password with random choices from all sets
-        all_characters = lowercase + uppercase + digits
-        password += random.choices(all_characters, k=length - 3)
-
-        # Shuffle the password to avoid predictable patterns
-        random.shuffle(password)
-
-        # Convert the list to a string
-        return ''.join(password)
 
 
 @lru_cache()
