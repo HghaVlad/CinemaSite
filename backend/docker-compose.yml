@@ -1,0 +1,8 @@
+version: "3.1"
+
+services:
+    backend:
+        container_name: apisite
+        build: .
+        ports:
+            - "8000:8000"
