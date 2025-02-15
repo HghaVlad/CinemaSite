@@ -11,7 +11,6 @@ class Showtime(Base):
     film_id = Column(Integer, ForeignKey("films.id"))
     hall_id = Column(Integer, ForeignKey("halls.id"))
     datetime = Column(DateTime, nullable=False)
-    available_tickets = Column(Integer, nullable=False)
     total_tickets = Column(Integer, nullable=False)
 
     film = relationship("Film", back_populates="showtimes")

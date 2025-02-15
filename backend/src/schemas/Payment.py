@@ -11,7 +11,7 @@ class UserPayment(BaseModel):
 class TicketResponse(BaseModel):
     id: int
     showtime_id: int
-    seat_number: int
+    ticket_id: int
     created_at: str
 
     class Config:

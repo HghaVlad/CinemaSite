@@ -1,13 +1,11 @@
-import re
-import random
 import string
+import random
 from smtplib import SMTP
 from email.mime.text import MIMEText
 
-from fastapi import HTTPException
-from starlette import status
-
 from core.config import settings
+from schemas.Payment import UserPayment
+from models.payments import PaymentStatus
 
 
 async def send_registration_email(email: str, name: str):
@@ -66,3 +64,16 @@ def generate_new_password():
 
     # Convert the list to a string
     return ''.join(password)
+
+
+def process_payment(payment: UserPayment) -> PaymentStatus:
+    if payment.cvv == 123 and payment.card_number == "1234567890123456" and payment.card_holder == "John Doe":
+        return PaymentStatus.SUCCESS
+    elif payment.cvv == 000 or len(payment.card_number) < 16 or payment.card_number == "0000000000000000" or len(payment.card_holder) < 3:
+        return PaymentStatus.ERROR
+
+    if random.randint(0, 1) == 0:
+        return PaymentStatus.NOT_ENOUGH_MONEY
+
+    return PaymentStatus.FAILED
+

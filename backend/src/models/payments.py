@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, ForeignKey, DATETIME, DECIMAL, Enum
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, DECIMAL, Enum
 from sqlalchemy.orm import relationship
 
 from db.postgres import Base
@@ -18,10 +18,8 @@ class Booking(Base):
     id = Column(Integer, primary_key=True)
     ticket_id = Column(Integer, ForeignKey("tickets.id"))
     user_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DATETIME, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
     price = Column(DECIMAL(10, 2))
-
-    ticket = relationship("Ticket", back_populates="bookings")
 
 
 class Payment(Base):
@@ -32,9 +30,7 @@ class Payment(Base):
     card_holder = Column(String)
     cvv = Column(Integer)
     status = Column(Enum(PaymentStatus), default=PaymentStatus.FAILED)
-    created_at = Column(DATETIME, default=datetime.utcnow)
-
-    booking = relationship("Bookings", back_populates="payments")
+    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 class Order(Base):
@@ -43,6 +39,4 @@ class Order(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     ticket_id = Column(Integer, ForeignKey("tickets.id"))
     payment_id = Column(Integer, ForeignKey("payments.id"))
-    created_at = Column(DATETIME, default=datetime.utcnow)
-
-    ticket = relationship("Ticket", back_populates="orders")
+    created_at = Column(DateTime, default=datetime.utcnow)

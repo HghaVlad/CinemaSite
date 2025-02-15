@@ -9,7 +9,7 @@ from core.config import settings
 
 # Models import
 from db.postgres import Base
-from models.users import User
+import models
 
 target_metadata = Base.metadata
 
