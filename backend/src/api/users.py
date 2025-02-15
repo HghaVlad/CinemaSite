@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
 
-from services.users import get_user_service
-from schemas.auth import UserResponse
+from services.users import get_user_service, UsersService
+from schemas.auth import UserResponse, UpdatePasswordRequest, UpdateUserRequest
 from db.postgres import get_postgres_session, AsyncSession
 
 router = APIRouter(tags=["users"])
@@ -25,7 +25,7 @@ async def get_me_user(request: Request, user_service=Depends(get_user_service),
 
 
 @router.patch("/me", response_model=UserResponse)
-async def update_me_user(request: Request, user_service=Depends(get_user_service),
+async def update_me_user(request: Request, data: UpdateUserRequest, user_service: UsersService = Depends(get_user_service),
                       session: AsyncSession = Depends(get_postgres_session)):
     """
     Updates user's email, name, surname
@@ -35,10 +35,14 @@ async def update_me_user(request: Request, user_service=Depends(get_user_service
     Possible solution: have an url in email to confirm the changes (e.g. by asking to sing up with new data)
     """
 
-    user = user_service.update_user_data(request, session)
+    user = await user_service.update_user_data(request, data, session)
 
-    if request.cookies.get("reset_password") and request.cookies.get("reset_password") == True:
-        user = user_service.reset_password()
+    return UserResponse.from_orm(user)
 
+@router.post("/change_password")
+async def change_password(request: Request, data: UpdatePasswordRequest,
+                          user_service: UsersService =Depends(get_user_service),
+                          session: AsyncSession = Depends(get_postgres_session)):
+    user = await user_service.change_password(request, data, session)
 
     return UserResponse.from_orm(user)

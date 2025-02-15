@@ -10,8 +10,8 @@ from starlette import status
 
 from models.users import User
 from db.postgres import get_postgres_session
-from schemas.auth import SignUpRequest, SignInRequest
-from utils import send_registration_email, is_password_strong, is_name_or_surname_valid, generate_new_password, send_reset_password_email
+from schemas.auth import SignUpRequest, SignInRequest, UpdatePasswordRequest, UpdateUserRequest
+from utils import send_registration_email, generate_new_password, send_reset_password_email
 
 
 class UsersService:
@@ -19,8 +19,6 @@ class UsersService:
     # In future there will be redis connection
     def __init__(self):
         self.PasswordContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
-        self.EmailRegex = r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
-
 
     async def get_user_by_cookie_request(self, request: Request, session: AsyncSession):
         if request.cookies.get("user_id") and request.cookies.get("user_id").isdigit():
@@ -32,15 +30,12 @@ class UsersService:
         else:
             raise HTTPException(status_code=401, detail="Unauthorized")
 
-
     async def get_user_by_id(self, user_id, session: AsyncSession):
         return await session.get(User, user_id)
-
 
     async def get_user_by_email(self, email: str, session: AsyncSession):
         result = await session.execute(select(User).where(User.email == email))
         return result.scalars().first()
-
 
     async def register_user(self, data: SignUpRequest, session: AsyncSession) -> User:
 
@@ -50,29 +45,14 @@ class UsersService:
                 detail="User with such an email already exists",
             )
 
-        # Checking if name and surname are correct, invalid email format should be caught by pydantic EmailStr
-        name = data.name.strip()
-        surname = data.surname.strip()
-        is_name_or_surname_valid(name, "Name")
-        is_name_or_surname_valid(surname, "Surname")
-
-        # Checking if password is strong enough
-        is_pwd_strong, pwd_msg = is_password_strong(data.password)
-        if not is_pwd_strong:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=pwd_msg,
-            )
-
         hashed_password = self.PasswordContext.hash(data.password)
-        user = User(email=str(data.email), hashed_password=hashed_password, name=name, surname=surname)
+        user = User(email=str(data.email), hashed_password=hashed_password, name=data.name, surname=data.surname)
 
         session.add(user)
         await session.commit()
         await session.refresh(user)
         await send_registration_email(str(data.email), data.name)
         return user
-
 
     async def authenticate_user(self, data: SignInRequest, session: AsyncSession) -> int:
         result = await session.execute(select(User).where(User.email == data.email))
@@ -89,7 +69,6 @@ class UsersService:
             )
         return user.id
 
-
     # Not working
     async def remove_user(self, user_id: int):
         async with get_postgres_session() as session:
@@ -97,39 +76,36 @@ class UsersService:
             await session.delete(user)
             await session.commit()
 
-
-    async def update_user_data(self, request: Request, session: AsyncSession):
+    async def update_user_data(self, request: Request, data: UpdateUserRequest, session: AsyncSession):
         """
         Updates user's email, name, surname if they are valid
         """
         user = await self.get_user_by_cookie_request(request, session)
+        print(data, "ey")
+        if data.email is not None:
+            user.email = data.email
+        if data.name is not None:
+            user.name = data.name
+        if data.surname is not None:
+            user.surname = data.surname
 
-        if not request.cookies.get("email") or not request.cookies.get("name") or not request.cookies.get("surname"):
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-                detail="Email or name or surname are missing in the http request cookies",
-            )
-
-        email = request.cookies.get("email").strip()
-        if re.match(self.EmailRegex, email):
-            user.email = email
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid email format",
-            )
-
-        name = request.cookies.get("name").strip()
-        if is_name_or_surname_valid(name, "Name"):
-            user.name = name
-
-        surname = request.cookies.get("surname").strip()
-        if is_name_or_surname_valid(name, "Surname"):
-            user.surname = surname
-
+        session.add(user)
         await session.commit()
-        await session.refresh(user)
         return user
+
+    async def change_password(self, request: Request, data: UpdatePasswordRequest, session: AsyncSession):
+
+        user = await self.get_user_by_cookie_request(request, session)
+        if not self.PasswordContext.verify(data.old_password, user.hashed_password):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect old password",
+            )
+        user.hashed_password = self.PasswordContext.hash(data.new_password)
+        session.add(user)
+        await session.commit()
+        return user
+
 
 
     async def reset_password(self, request: Request, session: AsyncSession):
