@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 from api.ping import router as ping_router
 from api.users import router as users_router
 from api.films import router as films_router
+from api.showtime import router as showtime_router
 
 
 app = FastAPI(
@@ -17,6 +18,7 @@ app = FastAPI(
 app.include_router(ping_router)
 app.include_router(users_router)
 app.include_router(films_router)
+app.include_router(showtime_router)
 
 
 if __name__ == "__main__":

@@ -3,8 +3,6 @@ from functools import lru_cache
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from starlette import status
-
 from models.films import Film
 
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
 from services.films import get_film_service, FilmsService
 from schemas.films import FilmResponse, FilmListResponse
