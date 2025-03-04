@@ -12,6 +12,8 @@ class Showtime(Base):
     hall_id = Column(Integer, ForeignKey("halls.id"))
     datetime = Column(DateTime, nullable=False)
     total_tickets = Column(Integer, nullable=False)
+    rows = Column(Integer, nullable=False)
+    places = Column(Integer, nullable=False)
 
     film = relationship("Film", back_populates="showtimes")
     hall = relationship("Hall", back_populates="showtimes")
@@ -35,6 +37,8 @@ class Ticket(Base):
     id = Column(Integer, primary_key=True, index=True)
     showtime_id = Column(Integer, ForeignKey("showtimes.id"))
     seat_number = Column(String, nullable=False)
+    row = Column(Integer, nullable=False)
+    place = Column(Integer, nullable=False)
     price = Column(Numeric(10, 2), nullable=False)
     is_booked = Column(Boolean, default=False)
 
