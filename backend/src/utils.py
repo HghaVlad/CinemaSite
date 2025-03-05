@@ -1,6 +1,7 @@
 import re
 import random
 import string
+
 from smtplib import SMTP
 from email.mime.text import MIMEText
 
@@ -8,6 +9,8 @@ from fastapi import HTTPException
 from starlette import status
 
 from core.config import settings
+
+
 
 
 async def send_registration_email(email: str, name: str):
@@ -104,3 +107,5 @@ def generate_new_password():
 
     # Convert the list to a string
     return ''.join(password)
+
+

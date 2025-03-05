@@ -1,17 +1,23 @@
 import re
 from functools import lru_cache
 from fastapi.exceptions import HTTPException
-from fastapi import Request
+from fastapi import Request, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from passlib.context import CryptContext
 from starlette import status
+from jose import jwt, JWTError
 
 from models.users import User
 from db.postgres import get_postgres_session
 from schemas.auth import SignUpRequest, SignInRequest
 from utils import send_registration_email, is_password_strong, is_name_or_surname_valid, generate_new_password, send_reset_password_email
+from .JwtService import JwtService
+
+from core.config import settings
+
+
 
 
 class UsersService:
@@ -40,6 +46,29 @@ class UsersService:
     async def get_user_by_email(self, email: str, session: AsyncSession):
         result = await session.execute(select(User).where(User.email == email))
         return result.scalars().first()
+
+
+    async def get_user_by_jwt(self, session: AsyncSession, token: str = Depends(JwtService.Oauth2Scheme)):
+        credentials_exception = HTTPException(
+            status_code=401,
+            detail="Неверные учетные данные",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+        try:
+            payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+            user_id: str = payload.get("sub")
+            if user_id is None:
+                raise credentials_exception
+        except JWTError:
+            raise credentials_exception
+
+        user = self.get_user_by_id(user_id, session)
+
+        if user is None:
+            raise credentials_exception
+
+        return user
 
 
     async def register_user(self, data: SignUpRequest, session: AsyncSession) -> User:
@@ -82,6 +111,7 @@ class UsersService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User with such an email was not found",
             )
+
         if not self.PasswordContext.verify(data.password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,

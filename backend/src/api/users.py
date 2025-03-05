@@ -11,7 +11,9 @@ router = APIRouter(tags=["users"])
 @router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, user_service=Depends(get_user_service),
                    session: AsyncSession = Depends(get_postgres_session)):
+
     user = await user_service.get_user_by_id(user_id, session)
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return UserResponse.from_orm(user)
@@ -20,7 +22,13 @@ async def get_user(user_id: int, user_service=Depends(get_user_service),
 @router.get("/me", response_model=UserResponse)
 async def get_me_user(request: Request, user_service=Depends(get_user_service),
                       session: AsyncSession = Depends(get_postgres_session)):
+
     user = await user_service.get_user_by_cookie_request(request, session)
+
+    # Вместо кукисов, тырит токен из http запроса с заголовком Authorization: Bearer <token>
+    # по схеме из oauth2
+    user = await user_service.get_user_by_jwt()
+
     return UserResponse.from_orm(user)
 
 

@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     postgres_db: str = "postgres"
     mail_config: MailConfig = MailConfig()
 
+    jwt_secret: str = "6cTcjscxMGFtSL3099ju7An01vOs2ycxGvRlIssV"
+    access_token_expire_minutes: int = 120
+
     @property
     def database_url(self):
         return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
