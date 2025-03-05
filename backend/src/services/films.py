@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from models.films import Film
+from schemas.films import FilmCreate
 
 
 class FilmsService:
@@ -20,7 +21,13 @@ class FilmsService:
     async def get_all_films(self, session: AsyncSession):
         result = await session.execute(select(Film))
         return result.scalars().all()
-    
+
+    async def create_film(self, film: FilmCreate, session: AsyncSession):
+        new_film = Film(**film.dict())
+        session.add(new_film)
+        await session.commit()
+        return new_film
+
 
 @lru_cache
 def get_film_service() -> FilmsService:

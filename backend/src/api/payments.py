@@ -19,7 +19,7 @@ async def book_showtime(ticket: MakeBooking, request: Request, payments_service:
     user = await user_service.get_user_by_cookie_request(request, session)
     booking = await payments_service.book_showtime(ticket, session, user_id=user.id)
 
-    return BookingResponse.from_orm(booking)
+    return BookingResponse.model_validate(booking)
 
 
 @router.post("/pay/", response_model_include={"status": ["success", "failed", "not_enough_money"]})

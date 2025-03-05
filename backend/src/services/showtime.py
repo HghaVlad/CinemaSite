@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional
 
 from models.showtime import Showtime
-from schemas.showtime import Seat, ShowtimeResponse
+from schemas.showtime import Seat, ShowtimeResponse, ShowtimeCreate
 
 
 class ShowtimeService:
@@ -17,7 +17,7 @@ class ShowtimeService:
     async def get_showtime_details(self, showtime_id: int, session: AsyncSession) -> Optional[ShowtimeResponse]:
         query = (
             select(Showtime)
-            .options(joinedload(Showtime.hall), joinedload(Showtime.tickets))
+            .options(joinedload(Showtime.tickets))
             .where(Showtime.id == showtime_id)
         )
         result = await session.execute(query)
@@ -29,7 +29,6 @@ class ShowtimeService:
         booked_seats = [
             Seat(row=ticket.row, place=ticket.place)
             for ticket in showtime.tickets
-            if ticket.is_booked
         ]
 
         # Формируем ответ
@@ -37,8 +36,8 @@ class ShowtimeService:
             id=showtime.id,
             film_id=showtime.film_id,
             datetime=showtime.datetime,
-            total_rows=showtime.hall.rows,
-            total_places_per_row=showtime.hall.places,
+            total_rows=showtime.rows,
+            total_places_per_row=showtime.places,
             booked_seats=booked_seats,
         )
     
@@ -46,10 +45,10 @@ class ShowtimeService:
     async def get_all_showtimes(self, session: AsyncSession) -> List[ShowtimeResponse]:
         query = (
             select(Showtime)
-            .options(joinedload(Showtime.hall), joinedload(Showtime.tickets))
+            .options(joinedload(Showtime.tickets))
         )
         result = await session.execute(query)
-        showtimes = result.scalars().all()
+        showtimes = result.unique().scalars().all()
 
         # Формируем список ответов
         showtime_responses = []
@@ -57,21 +56,32 @@ class ShowtimeService:
             booked_seats = [
                 Seat(row=ticket.row, place=ticket.place)
                 for ticket in showtime.tickets
-                if ticket.is_booked
             ]
             showtime_responses.append(
                 ShowtimeResponse(
                     id=showtime.id,
                     film_id=showtime.film_id,
                     datetime=showtime.datetime,
-                    total_rows=showtime.hall.rows,
-                    total_places_per_row=showtime.hall.places,
+                    total_rows=showtime.rows,
+                    total_places_per_row=showtime.places,
                     booked_seats=booked_seats,
                 )
             )
 
         return showtime_responses
-    
+
+    async def create_showtime(self, showtime_data: ShowtimeCreate, session: AsyncSession) -> Optional[ShowtimeResponse]:
+        new_showtime = Showtime(
+            film_id=showtime_data.film_id,
+            datetime=showtime_data.datetime.replace(tzinfo=None),
+            total_tickets=showtime_data.total_tickets,
+            rows=showtime_data.rows,
+            places=showtime_data.places)
+
+        session.add(new_showtime)
+        await session.commit()
+        return new_showtime
+
 
 @lru_cache
 def get_showtime_service() -> ShowtimeService:

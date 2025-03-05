@@ -5,7 +5,8 @@ from decimal import Decimal
 
 class MakeBooking(BaseModel):
     showtime_id: int
-    ticket_id: int
+    row_number: int
+    place_number: int
 
 
 class BookingResponse(BaseModel):
@@ -14,3 +15,6 @@ class BookingResponse(BaseModel):
     user_id: int
     created_at: datetime
     price: Decimal
+
+    class Config:
+        from_attributes = True

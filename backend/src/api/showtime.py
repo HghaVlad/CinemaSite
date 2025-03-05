@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from db.postgres import get_postgres_session, AsyncSession
 
 from services.showtime import ShowtimeService, get_showtime_service
-from schemas.showtime import ShowtimeResponse, ShowtimeListResponse
+from schemas.showtime import ShowtimeResponse, ShowtimeListResponse, ShowtimeCreate, ShowTimeCreateResponse
 
 
 router = APIRouter(tags=["showtimes"])
@@ -29,3 +29,14 @@ async def get_all_showtimes(
     if not showtimes:
         raise HTTPException(status_code=404, detail="No showtimes found")
     return ShowtimeListResponse(showtimes=showtimes)
+
+
+@router.post("/showtime", response_model=ShowTimeCreateResponse)
+async def create_showtime(showtime_data: ShowtimeCreate,
+                          showtime_service: ShowtimeService = Depends(get_showtime_service),
+                          session: AsyncSession = Depends(get_postgres_session)):
+    new_showtime = await showtime_service.create_showtime(showtime_data, session)
+    if new_showtime:
+        return ShowTimeCreateResponse.model_validate(new_showtime)
+
+    raise HTTPException(status_code=400, detail="Showtime already exists")
