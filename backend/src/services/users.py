@@ -1,4 +1,3 @@
-import re
 from functools import lru_cache
 from fastapi.exceptions import HTTPException
 from fastapi import Request, Depends
@@ -11,10 +10,6 @@ from jose import jwt, JWTError
 
 from models.users import User
 from db.postgres import get_postgres_session
-from schemas.auth import SignUpRequest, SignInRequest
-from utils import send_registration_email, generate_new_password, send_reset_password_email
-from .JwtService import JwtService
-
 from core.config import settings
 
 
@@ -48,22 +43,29 @@ class UsersService:
         return result.scalars().first()
 
 
-    async def get_user_by_jwt(self, session: AsyncSession, token: str = Depends(JwtService.Oauth2Scheme)):
+    async def get_user_by_jwt(self, token: str, session: AsyncSession):
         credentials_exception = HTTPException(
-            status_code=401,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Неверные учетные данные",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
         try:
             payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
-            user_id: str = payload.get("sub")
+            user_id: int = int(payload.get("sub"))
             if user_id is None:
                 raise credentials_exception
-        except JWTError:
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен истек",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        except JWTError as e:
+            print(e)
             raise credentials_exception
 
-        user = self.get_user_by_id(user_id, session)
+        user = await self.get_user_by_id(user_id, session)
 
         if user is None:
             raise credentials_exception
@@ -113,11 +115,10 @@ class UsersService:
             await session.delete(user)
             await session.commit()
 
-    async def update_user_data(self, request: Request, data: UpdateUserRequest, session: AsyncSession):
+    async def update_user_data(self, user: User, request: Request, data: UpdateUserRequest, session: AsyncSession):
         """
         Updates user's email, name, surname if they are valid
         """
-        user = await self.get_user_by_cookie_request(request, session)
         print(data, "ey")
         if data.email is not None:
             user.email = data.email
@@ -130,9 +131,8 @@ class UsersService:
         await session.commit()
         return user
 
-    async def change_password(self, request: Request, data: UpdatePasswordRequest, session: AsyncSession):
+    async def change_password(self, user: User, request: Request, data: UpdatePasswordRequest, session: AsyncSession):
 
-        user = await self.get_user_by_cookie_request(request, session)
         if not self.PasswordContext.verify(data.old_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
