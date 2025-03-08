@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from fastapi.security import HTTPBearer
 from jose import jwt
 from starlette.responses import JSONResponse
-
 from core.config import settings
+
 
 class JwtService:
 
@@ -14,7 +14,7 @@ class JwtService:
     @staticmethod
     def  create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
-        expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+        expire = datetime.utcnow() + (expires_delta or timedelta(minutes=10000)) # 10000 - по воле Влада Йошигаке
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(to_encode, settings.jwt_secret, algorithm="HS256")
         return encoded_jwt
