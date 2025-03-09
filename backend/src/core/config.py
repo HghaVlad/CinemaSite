@@ -12,6 +12,19 @@ class MailConfig(BaseSettings):
     MAIL_SERVER: str = "smtp.yandex.ru"
 
 
+class RedisConfig(BaseSettings):
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_PASSWORD: str = ""
+    REDIS_DB: int = 0
+
+    @property
+    def redis_url(self) -> str:
+        if self.REDIS_PASSWORD:
+            return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+
+
 class Settings(BaseSettings):
 
     postgres_user: str = "postgres"
@@ -20,6 +33,7 @@ class Settings(BaseSettings):
     postgres_port: str = "5432"
     postgres_db: str = "postgres"
     mail_config: MailConfig = MailConfig()
+    redis_config: RedisConfig = RedisConfig()
 
     @property
     def database_url(self):

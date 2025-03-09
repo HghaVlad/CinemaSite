@@ -12,5 +12,4 @@ EXPOSE 8000
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
-CMD ["python3", "main.py"]
 CMD ["sh", "start.sh"]
