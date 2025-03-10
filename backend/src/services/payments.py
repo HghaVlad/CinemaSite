@@ -55,10 +55,11 @@ class PaymentsService:
         new_payment = Payment(booking_id=booking.id, card_number=payment.card_number, card_holder=payment.card_holder, cvv=payment.cvv, status=status)
         session.add(new_payment)
         await session.commit()
-        order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id)
+        if status == PaymentStatus.SUCCESS:
+            order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id)
 
-        session.add(order)
-        await session.commit()
+            session.add(order)
+            await session.commit()
 
         return status
 
