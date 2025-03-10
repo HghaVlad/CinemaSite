@@ -3,7 +3,8 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 import os
 import uuid
@@ -15,16 +16,21 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
-@app.get("/")
-def hello():
-    return "Hello world!"
-
 API_TOKEN = "bla bla"
 
 current_dir = os.getcwd()
 pdf_dir = "pdfs"
 os.makedirs(pdf_dir, exist_ok=True)
 
+try:
+    pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))
+except:
+    pass
+
+
+@app.get("/")
+def hello():
+    return "Hello world!"
 
 @app.post("/generate_pdf")
 async def generate_pdf(film: str,
@@ -56,12 +62,14 @@ async def generate_pdf(film: str,
 
     return {"file_url": f"/order/{file_id}"}
 
+
 @app.get("/order/{file_id}")
 async def get_pdf(file_id: str):
     file_path = os.path.join(pdf_dir, f"{file_id}.pdf")
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="application/pdf")
-
+    else:
+        raise HTTPException(status_code=404, detail="File not found")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8001)
