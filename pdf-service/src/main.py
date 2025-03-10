@@ -20,7 +20,8 @@ API_TOKEN = os.getenv("PDF_API_TOKEN")
 
 current_dir = os.getcwd()
 pdf_dir = "pdfs"
-os.makedirs(pdf_dir, exist_ok=True)
+parent_dir = os.path.join(current_dir, "..", pdf_dir)
+os.makedirs(parent_dir, exist_ok=True)
 
 
 @app.get("/")
@@ -38,12 +39,16 @@ async def generate_pdf(film: str,
         user_surname: str,
         user_email,
         token: str = Header):
+    """
+    Generates pdf for entered data. Outputs url like /order/<pdf_id>.
+    You can access created pdf on <servername>/order/<pdf_id>
+    """
 
     if token != API_TOKEN:
         raise HTTPException(status_code=403, detail="Forbidden")
 
     file_id = uuid.uuid4()
-    file_path = os.path.join(pdf_dir, f"{file_id}.pdf")
+    file_path = os.path.join(parent_dir, f"{file_id}.pdf")
 
     generate_ticket_pdf(
         filename=file_path,
@@ -62,7 +67,7 @@ async def generate_pdf(film: str,
 
 @app.get("/order/{file_id}")
 async def get_pdf(file_id: str):
-    file_path = os.path.join(pdf_dir, f"{file_id}.pdf")
+    file_path = os.path.join(parent_dir, f"{file_id}.pdf")
     if os.path.exists(file_path):
         return FileResponse(file_path, media_type="application/pdf")
     else:
@@ -70,4 +75,4 @@ async def get_pdf(file_id: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="localhost", port=8001)
+    uvicorn.run(app, host="0.0.0.0", port=8001)
