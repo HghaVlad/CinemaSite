@@ -38,6 +38,7 @@ class ShowtimeService:
             datetime=showtime.datetime,
             total_rows=showtime.rows,
             total_places_per_row=showtime.places,
+            price=showtime.price,
             booked_seats=booked_seats,
         )
     
@@ -64,6 +65,7 @@ class ShowtimeService:
                     datetime=showtime.datetime,
                     total_rows=showtime.rows,
                     total_places_per_row=showtime.places,
+                    price=showtime.price,
                     booked_seats=booked_seats,
                 )
             )
