@@ -1,5 +1,9 @@
 import uvicorn
 from fastapi import FastAPI, Header, HTTPException
+from fastapi.responses import FileResponse
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+
 
 import os
 import uuid
@@ -18,12 +22,12 @@ def hello():
 API_TOKEN = "bla bla"
 
 current_dir = os.getcwd()
-pdf_dir = os.path.join(current_dir, "..", "pdfs")
+pdf_dir = "pdfs"
 os.makedirs(pdf_dir, exist_ok=True)
 
 
 @app.post("/generate_pdf")
-def generate_pdf(film: str,
+async def generate_pdf(film: str,
         session: str,
         seat: str,
         row: str,
@@ -37,16 +41,26 @@ def generate_pdf(film: str,
         raise HTTPException(status_code=403, detail="Forbidden")
 
     file_id = uuid.uuid4()
+    file_path = os.path.join(pdf_dir, f"{file_id}.pdf")
 
+    canv = canvas.Canvas(file_path, pagesize=letter)
+    canv.drawString(100, 750, f"Film: {film}")
+    canv.drawString(100, 730, f"Session: {session}")
+    canv.drawString(100, 710, f"Seat: {seat}")
+    canv.drawString(100, 690, f"Row: {row}")
+    canv.drawString(100, 670, f"Time: {time}")
+    canv.drawString(100, 650, f"Name: {user_name}")
+    canv.drawString(100, 630, f"Surname: {user_surname}")
+    canv.drawString(100, 610, f"Email: {user_email}")
+    canv.save()
 
+    return {"file_url": f"/order/{file_id}"}
 
-
-
-
-
-
-
-
+@app.get("/order/{file_id}")
+async def get_pdf(file_id: str):
+    file_path = os.path.join(pdf_dir, f"{file_id}.pdf")
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="application/pdf")
 
 
 if __name__ == "__main__":
