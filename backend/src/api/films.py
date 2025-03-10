@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from services.films import get_film_service, FilmsService
-from schemas.films import FilmResponse, FilmListResponse
+from schemas.films import FilmResponse, FilmListResponse, FilmCreate
 from db.postgres import get_postgres_session, AsyncSession
 
 router = APIRouter(tags=["films"])
@@ -23,3 +23,14 @@ async def get_films_list(film_service: FilmsService = Depends(get_film_service),
     if not film_list:
         raise HTTPException(status_code=404, detail="Films not found")
     return FilmListResponse.model_validate(film_list)
+
+
+@router.post("/films", response_model=FilmResponse)
+async def create_film(film_data: FilmCreate, film_service: FilmsService = Depends(get_film_service),
+                      session: AsyncSession = Depends(get_postgres_session)):
+
+    new_film = await film_service.create_film(film_data, session)
+    if new_film:
+        return FilmResponse.model_validate(new_film)
+
+    raise HTTPException(status_code=400, detail="Film already exists")

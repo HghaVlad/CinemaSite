@@ -8,6 +8,7 @@ from api.ping import router as ping_router
 from api.users import router as users_router
 from api.auth import router as auth_router
 from api.films import router as films_router
+from api.showtime import router as showtime_router
 from api.payments import router as payments_router
 
 app = FastAPI(
@@ -29,6 +30,7 @@ app.add_middleware(
 app.include_router(ping_router)
 app.include_router(users_router)
 app.include_router(films_router)
+app.include_router(showtime_router)
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(payments_router, prefix="/payments", tags=["payments"])
 
