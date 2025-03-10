@@ -1,15 +1,18 @@
-import re
 from functools import lru_cache
 from fastapi.exceptions import HTTPException
-from fastapi import Request
+from fastapi import Request, Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from passlib.context import CryptContext
 from starlette import status
+from jose import jwt, JWTError
 
 from models.users import User
 from db.postgres import get_postgres_session
+from core.config import settings
+
+
 from schemas.auth import SignUpRequest, SignInRequest, UpdatePasswordRequest, UpdateUserRequest
 from utils import send_registration_email, generate_new_password, send_reset_password_email
 
@@ -30,12 +33,45 @@ class UsersService:
         else:
             raise HTTPException(status_code=401, detail="Unauthorized")
 
+
     async def get_user_by_id(self, user_id, session: AsyncSession):
         return await session.get(User, user_id)
+
 
     async def get_user_by_email(self, email: str, session: AsyncSession):
         result = await session.execute(select(User).where(User.email == email))
         return result.scalars().first()
+
+
+    async def get_user_by_jwt(self, token: str, session: AsyncSession):
+        credentials_exception = HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверные учетные данные",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+        try:
+            payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+            user_id: int = int(payload.get("sub"))
+            if user_id is None:
+                raise credentials_exception
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Токен истек",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        except JWTError as e:
+            print(e)
+            raise credentials_exception
+
+        user = await self.get_user_by_id(user_id, session)
+
+        if user is None:
+            raise credentials_exception
+
+        return user
+
 
     async def register_user(self, data: SignUpRequest, session: AsyncSession) -> User:
 
@@ -54,6 +90,7 @@ class UsersService:
         await send_registration_email(str(data.email), data.name)
         return user
 
+
     async def authenticate_user(self, data: SignInRequest, session: AsyncSession) -> int:
         result = await session.execute(select(User).where(User.email == data.email))
         user = result.scalars().first()
@@ -62,12 +99,14 @@ class UsersService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User with such an email was not found",
             )
+
         if not self.PasswordContext.verify(data.password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Incorrect password or email",
             )
         return user.id
+
 
     # Not working
     async def remove_user(self, user_id: int):
@@ -76,11 +115,10 @@ class UsersService:
             await session.delete(user)
             await session.commit()
 
-    async def update_user_data(self, request: Request, data: UpdateUserRequest, session: AsyncSession):
+    async def update_user_data(self, user: User, request: Request, data: UpdateUserRequest, session: AsyncSession):
         """
         Updates user's email, name, surname if they are valid
         """
-        user = await self.get_user_by_cookie_request(request, session)
         print(data, "ey")
         if data.email is not None:
             user.email = data.email
@@ -93,9 +131,8 @@ class UsersService:
         await session.commit()
         return user
 
-    async def change_password(self, request: Request, data: UpdatePasswordRequest, session: AsyncSession):
+    async def change_password(self, user: User, request: Request, data: UpdatePasswordRequest, session: AsyncSession):
 
-        user = await self.get_user_by_cookie_request(request, session)
         if not self.PasswordContext.verify(data.old_password, user.hashed_password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
