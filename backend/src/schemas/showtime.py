@@ -26,7 +26,6 @@ class ShowtimeListResponse(BaseModel):
 class ShowtimeCreate(BaseModel):
     film_id: int
     datetime: datetime
-    total_tickets: int
     rows: int
     places: int
     price: Decimal
