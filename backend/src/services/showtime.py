@@ -76,9 +76,10 @@ class ShowtimeService:
         new_showtime = Showtime(
             film_id=showtime_data.film_id,
             datetime=showtime_data.datetime.replace(tzinfo=None),
-            total_tickets=showtime_data.total_tickets,
+            total_tickets=showtime_data.rows* showtime_data.places,
             rows=showtime_data.rows,
-            places=showtime_data.places)
+            places=showtime_data.places,
+            price=showtime_data.price)
 
         session.add(new_showtime)
         await session.commit()
