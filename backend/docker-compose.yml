@@ -9,10 +9,12 @@ services:
         depends_on:
             db:
                 condition: service_healthy
+            redis:
+                condition: service_healthy
         env_file:
             - .env
         environment:
-            - POSTGRES_HOST=db
+            - postgres_host=db
 
     db:
         image: postgres:15
@@ -29,6 +31,23 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+
+    redis:
+        image: redis:latest
+        container_name: redis-cache
+        restart: always
+        env_file:
+            - .env
+        command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+        ports:
+            - "6379:6379"
+        healthcheck:
+            test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        volumes:
+            - redis_data:/data
 
 volumes:
     postgres_data:
