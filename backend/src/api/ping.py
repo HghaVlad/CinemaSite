@@ -8,3 +8,5 @@ router = APIRouter()
 @router.get("/ping")
 async def ping():
     return JSONResponse({"message": "OK"})
+
+
