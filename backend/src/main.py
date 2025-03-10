@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
 from api.ping import router as ping_router
 from api.users import router as users_router
@@ -15,6 +16,14 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
     default_response_class=JSONResponse,
     swagger_ui_parameters={"oauth2RedirectUrl": "/docs/oauth2-redirect"}
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(ping_router)
