@@ -47,7 +47,6 @@ async def generate_pdf(ticket_data: TicketRequest, token: str = Header(None, ali
     generate_ticket_pdf(
         filename=file_path,
         film=ticket_data.film,
-        session=ticket_data.session,
         seat=ticket_data.seat,
         row=ticket_data.row,
         time=ticket_data.time,

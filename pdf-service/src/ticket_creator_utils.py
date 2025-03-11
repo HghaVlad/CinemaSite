@@ -20,9 +20,9 @@ def generate_ticket_pdf(filename, **kwargs):
 
     styles = {
         'bg_color': colors.HexColor("#FFFFFF"),
-        'main_color': colors.HexColor("#E57373"),  # Более теплый цвет для рамки
-        'text_dark': colors.HexColor("#4E342E"),  # Теплый тёмный цвет для текста
-        'text_light': colors.HexColor("#8D6E63"),  # Теплый светлый цвет для текста
+        'main_color': colors.HexColor("#E57373"),
+        'text_dark': colors.HexColor("#4E342E"),
+        'text_light': colors.HexColor("#8D6E63"),
         'font_normal': 'Roboto',
         'font_bold': 'Roboto-Bold'
     }
@@ -61,13 +61,12 @@ def draw_header(c, width, height, styles):
 
 
 def draw_movie_info(c, width, height, styles, **kwargs):
-    y_position = height - 70  # Сдвинул вверх
+    y_position = height - 70
     c.setFont(styles['font_bold'], 12)
     c.setFillColor(styles['text_dark'])
 
     info = [
         ("ФИЛЬМ:", kwargs['film']),
-        ("СЕАНС:", kwargs['session']),
         ("ВРЕМЯ:", kwargs['time']),
         ("РЯД:", kwargs['row']),
         ("МЕСТО:", kwargs['seat'])
