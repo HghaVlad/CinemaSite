@@ -1,6 +1,6 @@
 from functools import lru_cache
 from fastapi.exceptions import HTTPException
-from fastapi import Request, Depends
+from fastapi import Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,7 +19,6 @@ from utils import send_registration_email, generate_new_password, send_reset_pas
 
 class UsersService:
 
-    # In future there will be redis connection
     def __init__(self):
         self.PasswordContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -115,6 +114,7 @@ class UsersService:
             await session.delete(user)
             await session.commit()
 
+
     async def update_user_data(self, user: User, request: Request, data: UpdateUserRequest, session: AsyncSession):
         """
         Updates user's email, name, surname if they are valid
@@ -131,6 +131,7 @@ class UsersService:
         await session.commit()
         return user
 
+
     async def change_password(self, user: User, request: Request, data: UpdatePasswordRequest, session: AsyncSession):
 
         if not self.PasswordContext.verify(data.old_password, user.hashed_password):
@@ -142,7 +143,6 @@ class UsersService:
         session.add(user)
         await session.commit()
         return user
-
 
 
     async def reset_password(self, request: Request, session: AsyncSession):

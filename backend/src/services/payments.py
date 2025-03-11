@@ -2,13 +2,12 @@ from functools import lru_cache
 from typing import List, Tuple
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 
 from db.postgres import AsyncSession
 from models.showtime import Showtime, Ticket
 from models.payments import Booking, Order, PaymentStatus, Payment
-from schemas.Booking import MakeBooking
-from schemas.Payment import UserPayment, OrderResponse, TicketResponse
+from schemas.booking import MakeBooking
+from schemas.payment import UserPayment, OrderResponse, TicketResponse
 from utils import process_payment
 from pdf_integration import get_ticket_url
 

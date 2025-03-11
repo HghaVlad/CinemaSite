@@ -7,8 +7,8 @@ from services.payments import get_payments_service, PaymentsService
 from services.users import get_user_service, UsersService
 from services.JwtService import JwtService
 from models.payments import PaymentStatus
-from schemas.Booking import MakeBooking, BookingResponse
-from schemas.Payment import UserPayment, OrderResponse
+from schemas.booking import MakeBooking, BookingResponse
+from schemas.payment import UserPayment, OrderResponse
 
 
 router = APIRouter(tags=["payments"])

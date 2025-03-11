@@ -4,7 +4,7 @@ from smtplib import SMTP
 from email.mime.text import MIMEText
 
 from core.config import settings
-from schemas.Payment import UserPayment
+from schemas.payment import UserPayment
 from models.payments import PaymentStatus
 
 
