@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 
 from ticket_creator_utils import generate_ticket_pdf
+from TicketRequest import TicketRequest
 
 load_dotenv()
 
@@ -30,36 +31,29 @@ def hello():
 
 
 @app.post("/generate_pdf")
-async def generate_pdf(film: str,
-        session: str,
-        seat: str,
-        row: str,
-        time: str,
-        user_name: str,
-        user_surname: str,
-        user_email,
-        token: str = Header):
+async def generate_pdf(ticket_data: TicketRequest, token: str = Header(None, alias="pdf_api_token")):
     """
     Generates pdf for entered data. Outputs url like /order/<pdf_id>.
     You can access created pdf on <servername>/order/<pdf_id>
     """
 
     if token != API_TOKEN:
-        raise HTTPException(status_code=403, detail="Forbidden")
+        raise HTTPException(status_code=403, detail="Forbidden: invalid api token")
 
     file_id = uuid.uuid4()
     file_path = os.path.join(parent_dir, f"{file_id}.pdf")
+    print(file_path)
 
     generate_ticket_pdf(
         filename=file_path,
-        film=film,
-        session=session,
-        seat=seat,
-        row=row,
-        time=time,
-        user_name=user_name,
-        user_surname=user_surname,
-        user_email=user_email
+        film=ticket_data.film,
+        session=ticket_data.session,
+        seat=ticket_data.seat,
+        row=ticket_data.row,
+        time=ticket_data.time,
+        user_name=ticket_data.user_name,
+        user_surname=ticket_data.user_surname,
+        user_email=ticket_data.user_email
     )
 
     return {"file_url": f"/order/{file_id}"}
