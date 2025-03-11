@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import List
+from typing import List, Tuple
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 
@@ -9,7 +9,7 @@ from models.showtime import Showtime, Ticket
 from models.payments import Booking, Order, PaymentStatus, Payment
 from schemas.Booking import MakeBooking
 from schemas.Payment import UserPayment, OrderResponse
-from utils import process_payment
+from utils import process_payment, get_ticket_url
 
 
 class PaymentsService:
@@ -43,7 +43,7 @@ class PaymentsService:
         return booking
 
     @staticmethod
-    async def pay_showtime(payment: UserPayment, session: AsyncSession) -> PaymentStatus:
+    async def pay_showtime(payment: UserPayment, session: AsyncSession) -> Tuple[PaymentStatus, str]:
 
         booking = await session.get(Booking, payment.booking_id)
         if not booking:
@@ -51,17 +51,23 @@ class PaymentsService:
 
         status = process_payment(payment)
         booking.status = status
-        # To do: make order file
+
         new_payment = Payment(booking_id=booking.id, card_number=payment.card_number, card_holder=payment.card_holder, cvv=payment.cvv, status=status)
         session.add(new_payment)
         await session.commit()
+        
         if status == PaymentStatus.SUCCESS:
-            order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id)
+            ticket_url = None
+            try:
+                ticket_url = get_ticket_url(booking=booking)
+            except Exception as e:
+                print(e)
 
+            order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id, ticket_url=ticket_url)
             session.add(order)
             await session.commit()
-
-        return status
+            
+        return (status, ticket_url)
 
     @staticmethod
     async def get_user_orders(user_id, session: AsyncSession) -> List[OrderResponse]:

@@ -3,8 +3,6 @@ import string
 from smtplib import SMTP
 from email.mime.text import MIMEText
 
-from fastapi.openapi.utils import get_openapi
-
 from core.config import settings
 from schemas.Payment import UserPayment
 from models.payments import PaymentStatus

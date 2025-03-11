@@ -19,3 +19,4 @@ pyasn1==0.4.8
 pycparser==2.22
 python-jose==3.4.0
 rsa==4.9
+requests==2.32.3

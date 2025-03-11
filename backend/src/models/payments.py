@@ -1,7 +1,6 @@
 import enum
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, DECIMAL, Enum
-from sqlalchemy.orm import relationship
 
 from db.postgres import Base
 
@@ -40,4 +39,5 @@ class Order(Base):
     ticket_id = Column(Integer, ForeignKey("tickets.id"))
     payment_id = Column(Integer, ForeignKey("payments.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
+    ticket_url = Column(String, nullable=True)
     

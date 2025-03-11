@@ -15,8 +15,6 @@ services:
                 condition: service_started
         env_file:
             - .env
-        environment:
-            - postgres_host=db
 
     db:
         image: postgres:15

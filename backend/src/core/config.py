@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     jwt_secret: str = "6cTcjscxMGFtSL3099ju7An01vOs2ycxGvRlIssV"
     access_token_expire_minutes: int = 120
 
+    pdf_api_token: str = ""
+    pdf_api_host: str = "0.0.0.0:8001"
+
     @property
     def database_url(self):
         return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
