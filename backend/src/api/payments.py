@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials
-from typing import List
+from typing import List, Dict
 
 from db.postgres import get_postgres_session, AsyncSession
 from services.payments import get_payments_service, PaymentsService
@@ -28,7 +28,7 @@ async def book_showtime(ticket: MakeBooking,  payments_service: PaymentsService 
 
 @router.post("/pay/", response_model_include={"status": ["success", "failed", "not_enough_money"]})
 async def pay_showtime(payment: UserPayment, payments_service: PaymentsService = Depends(get_payments_service),
-                       session: AsyncSession = Depends(get_postgres_session)):
+                       session: AsyncSession = Depends(get_postgres_session)) -> Dict[str, str]:
     status = await payments_service.pay_showtime(payment, session)
     if status == PaymentStatus.SUCCESS:
         return {"status": "success"}
