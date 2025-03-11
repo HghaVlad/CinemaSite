@@ -3,10 +3,8 @@ import string
 from smtplib import SMTP
 from email.mime.text import MIMEText
 
-from fastapi.openapi.utils import get_openapi
-
 from core.config import settings
-from schemas.Payment import UserPayment
+from schemas.payment import UserPayment
 from models.payments import PaymentStatus
 
 
@@ -78,25 +76,3 @@ def process_payment(payment: UserPayment) -> PaymentStatus:
         return PaymentStatus.NOT_ENOUGH_MONEY
 
     return PaymentStatus.FAILED
-
-def custom_openapi():
-    if app.openapi_schema:
-        return app.openapi_schema
-
-    openapi_schema = get_openapi(
-        title="Your API",
-        version="1.0",
-        routes=app.routes,
-    )
-
-    # Добавляем схему безопасности Bearer JWT
-    openapi_schema["components"]["securitySchemes"] = {
-        "Bearer": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT",  # Указываем, что используется JWT
-        }
-    }
-
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, Numeric, String, Boolean, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Numeric, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 
 from db.postgres import Base
@@ -25,8 +25,8 @@ class Hall(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False, unique=True)  # Example: "IMAX Hall 1"
     capacity = Column(Integer, nullable=False)
-    rows = Column(Integer, nullable=False) # Количество рядов
-    places = Column(Integer, nullable=False) # Количество мест в ряду
+    rows = Column(Integer, nullable=False)
+    places = Column(Integer, nullable=False)
     hall_type = Column(String, nullable=False)  # Example: "IMAX", "3D", "Standard"
 
 

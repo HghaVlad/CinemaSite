@@ -7,9 +7,6 @@ COPY /src/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY /src /app
-EXPOSE 8000
+EXPOSE 8001
 
-COPY start.sh /app/start.sh
-RUN chmod +x /app/start.sh
-
-ENTRYPOINT ["./start.sh"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from decimal import Decimal
 
 class UserPayment(BaseModel):
     booking_id: int
@@ -11,8 +11,10 @@ class UserPayment(BaseModel):
 class TicketResponse(BaseModel):
     id: int
     showtime_id: int
-    ticket_id: int
-    created_at: str
+
+    price: Decimal
+    row: int
+    place: int
 
     class Config:
         from_attributes = True
@@ -20,10 +22,12 @@ class TicketResponse(BaseModel):
 
 class OrderResponse(BaseModel):
     id: int
-    payment_id: int
+    user_id: int
     ticket: TicketResponse
+    payment_id: int
 
     created_at: str
+    ticket_url: str
 
     class Config:
         from_attributes = True

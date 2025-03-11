@@ -9,7 +9,6 @@ from db.postgres import get_postgres_session, AsyncSession
 router = APIRouter(tags=["users"])
 
 
-# Example of user api
 @router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, user_service=Depends(get_user_service),
                    session: AsyncSession = Depends(get_postgres_session)):

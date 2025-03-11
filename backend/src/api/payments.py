@@ -1,14 +1,14 @@
-from fastapi import APIRouter, Depends, Request, Security
+from fastapi import APIRouter, Depends, Security
 from fastapi.security import HTTPAuthorizationCredentials
-from typing import List
+from typing import List, Dict
 
 from db.postgres import get_postgres_session, AsyncSession
 from services.payments import get_payments_service, PaymentsService
 from services.users import get_user_service, UsersService
 from services.JwtService import JwtService
-from models.payments import PaymentStatus, Booking
-from schemas.Booking import MakeBooking, BookingResponse
-from schemas.Payment import UserPayment, OrderResponse
+from models.payments import PaymentStatus
+from schemas.booking import MakeBooking, BookingResponse
+from schemas.payment import UserPayment, OrderResponse
 
 
 router = APIRouter(tags=["payments"])
@@ -26,18 +26,22 @@ async def book_showtime(ticket: MakeBooking,  payments_service: PaymentsService 
     return BookingResponse.model_validate(booking)
 
 
-@router.post("/pay/", response_model_include={"status": ["success", "failed", "not_enough_money"]})
-async def pay_showtime(payment: UserPayment, payments_service: PaymentsService = Depends(get_payments_service),
-                       session: AsyncSession = Depends(get_postgres_session)):
-    status = await payments_service.pay_showtime(payment, session)
-    if status == PaymentStatus.SUCCESS:
-        return {"status": "success"}
-    elif status == PaymentStatus.FAILED:
-        return {"status": "failed"}
-    elif status == PaymentStatus.NOT_ENOUGH_MONEY:
-        return {"status": "not_enough_money"}
+@router.post("/pay/", response_model_include={"status": ["success", "failed", "not_enough_money"], "url": str})
+async def pay_showtime(
+    payment: UserPayment,
+    payments_service: PaymentsService = Depends(get_payments_service),
+    session: AsyncSession = Depends(get_postgres_session)
+) -> Dict[str, str]:
+    status, ticket_url = await payments_service.pay_showtime(payment, session)
 
-    return {"status": "error"}
+    if status == PaymentStatus.SUCCESS:
+        return {"status": "success", "url": ticket_url}
+    elif status == PaymentStatus.FAILED:
+        return {"status": "failed", "url": ""}
+    elif status == PaymentStatus.NOT_ENOUGH_MONEY:
+        return {"status": "not_enough_money", "url": ""}
+
+    return {"status": "error", "url": ""}
 
 
 @router.get("/orders/{user_id}", response_model=List[OrderResponse])

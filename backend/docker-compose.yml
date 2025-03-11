@@ -11,10 +11,10 @@ services:
                 condition: service_healthy
             redis:
                 condition: service_healthy
+            pdf:
+                condition: service_started
         env_file:
             - .env
-        environment:
-            - postgres_host=db
 
     db:
         image: postgres:15
@@ -27,7 +27,7 @@ services:
         volumes:
             - postgres_data:/var/lib/postgresql/data
         healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U postgres"]
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
             interval: 5s
             timeout: 5s
             retries: 5
@@ -48,6 +48,17 @@ services:
             retries: 5
         volumes:
             - redis_data:/data
+
+    pdf:
+        build:
+            context: ../pdf-service
+            dockerfile: Dockerfile
+        container_name: pdf-service
+        restart: always
+        env_file:
+            - ../pdf-service/src/.env
+        ports:
+            - "8001:8001"
 
 volumes:
     postgres_data:
