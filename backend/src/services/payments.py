@@ -2,14 +2,15 @@ from functools import lru_cache
 from typing import List, Tuple
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select
-
+from sqlalchemy.orm import selectinload
 
 from db.postgres import AsyncSession
 from models.showtime import Showtime, Ticket
 from models.payments import Booking, Order, PaymentStatus, Payment
 from schemas.Booking import MakeBooking
-from schemas.Payment import UserPayment, OrderResponse
-from utils import process_payment, get_ticket_url
+from schemas.Payment import UserPayment, OrderResponse, TicketResponse
+from utils import process_payment
+from pdf_integration import get_ticket_url
 
 
 class PaymentsService:
@@ -56,12 +57,9 @@ class PaymentsService:
         session.add(new_payment)
         await session.commit()
         
+        ticket_url = ""
         if status == PaymentStatus.SUCCESS:
-            ticket_url = None
-            try:
-                ticket_url = get_ticket_url(booking=booking)
-            except Exception as e:
-                print(e)
+            ticket_url = await get_ticket_url(booking=booking)
 
             order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id, ticket_url=ticket_url)
             session.add(order)
@@ -70,11 +68,31 @@ class PaymentsService:
         return (status, ticket_url)
 
     @staticmethod
-    async def get_user_orders(user_id, session: AsyncSession) -> List[OrderResponse]:
-        orders = await session.execute(select(Order).where(Order.user_id == user_id))
-        orders = orders.scalars().all()
-        return [OrderResponse.from_orm(order) for order in orders]
+    async def get_user_orders(user_id: int, session: AsyncSession) -> List[OrderResponse]:
+        # Загружаем заказы и связанные билеты с помощью JOIN
+        stmt = (
+            select(Order, Ticket)
+            .join(Ticket, Order.ticket_id == Ticket.id)
+            .where(Order.user_id == user_id)
+        )
+        result = await session.execute(stmt)
+        orders_with_tickets = result.all()
 
+        order_responses = []
+        for order, ticket in orders_with_tickets:
+            ticket_response = TicketResponse.from_orm(ticket)
+
+            order_response = OrderResponse(
+                id=order.id,
+                user_id=order.user_id,
+                ticket=ticket_response,
+                payment_id=order.payment_id,
+                created_at=order.created_at.isoformat(),
+                ticket_url=order.ticket_url,
+            )
+            order_responses.append(order_response)
+
+        return order_responses
 
 @lru_cache
 def get_payments_service() -> PaymentsService:

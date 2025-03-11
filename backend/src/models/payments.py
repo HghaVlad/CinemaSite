@@ -39,5 +39,5 @@ class Order(Base):
     ticket_id = Column(Integer, ForeignKey("tickets.id"))
     payment_id = Column(Integer, ForeignKey("payments.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
-    ticket_url = Column(String, nullable=True)
+    ticket_url = Column(String)
     
