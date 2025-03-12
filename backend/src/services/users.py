@@ -86,7 +86,10 @@ class UsersService:
         session.add(user)
         await session.commit()
         await session.refresh(user)
-        await send_registration_email(str(data.email), data.name)
+        try:
+            await send_registration_email(str(data.email), data.name)
+        except:
+            return user
         return user
 
 

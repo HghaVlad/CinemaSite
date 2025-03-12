@@ -9,7 +9,7 @@ from models.payments import PaymentStatus
 
 
 async def send_registration_email(email: str, name: str):
-    conn = SMTP(host=settings.mail_config.MAIL_SERVER, port=settings.mail_config.MAIL_PORT)
+    conn = SMTP(host=settings.mail_config.MAIL_SERVER, port=settings.mail_config.MAIL_PORT, timeout=4)
     conn.starttls()
     conn.login(user=settings.mail_config.MAIL_USERNAME, password=settings.mail_config.MAIL_PASSWORD)
     message = MIMEText(
