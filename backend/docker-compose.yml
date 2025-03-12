@@ -16,6 +16,18 @@ services:
         env_file:
             - .env
 
+    frontend:
+        build:
+            context: ../frontend
+            dockerfile: Dockerfile
+        container_name: frontend
+        restart: always
+        ports:
+          - "3000:3000"
+        depends_on:
+            backend:
+                condition: service_started
+
     db:
         image: postgres:15
         container_name: postgres_db
