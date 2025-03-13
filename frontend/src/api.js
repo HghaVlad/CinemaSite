@@ -1,5 +1,3 @@
-import { use } from "react";
-
 const API_BASE_URL = "http://127.0.0.1:8000";
 
 export const signUp = async (userData) => {
@@ -134,3 +132,16 @@ export const showtime = async (id) =>
           body: JSON.stringify(payData)})
         return await responce.json();
       }
+
+      export const history = async (token) =>
+        {
+          const responce = await fetch(`${API_BASE_URL}/payments/orders`,
+          {
+            method:"GET",
+            headers:
+            {
+              "Content-Type":"application/json",
+              "Authorization": `Bearer ${token}`,
+            },})
+          return await responce.json();
+        }

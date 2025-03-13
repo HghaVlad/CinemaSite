@@ -62,6 +62,13 @@ function SeatSelectionPage() {
 
   const goToPayment = () => {
     if (selectedSeats.length > 0) {
+      if (!localStorage.getItem("token"))
+        {
+          alert("Для оплаты необходимо авторизироваться на сайте");
+          navigate("/auth");
+          return;
+        }
+
       navigate("/payment", {
         state: {
           film: film,

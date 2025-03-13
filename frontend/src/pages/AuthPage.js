@@ -11,6 +11,10 @@ function AuthPage() {
   });
   const [error, setError] = useState("");
 
+  if (localStorage.getItem("token"))
+  {
+    navigate("/profile");
+  }
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

@@ -1,17 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { me, changeUser } from "../api";
+import { me, changeUser, history } from "../api";
 
 function UserProfilePage() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
-
-  const [history] = useState([
-    { movie: "Троя", date: "10.02.2025", time: "18:00", seats: "1-1, 1-2" },
-    { movie: "Казино Рояль", date: "15.02.2025", time: "20:30", seats: "2-3" },
-  ]);
-
+  const [orders, setOrders] = useState([]);
   const handleLogout = () => {
     localStorage.removeItem("token");
     alert("Вы вышли из аккаунта");
@@ -43,7 +38,29 @@ function UserProfilePage() {
         navigate("/auth");
       }
     };
+
+    const getOrders = async () => {
+      const token = localStorage.getItem("token"); 
+
+      if (!token)
+      {
+        navigate("/auth");
+      }
+      try {
+        const responce = await history(token);
+        if (!responce) {
+          console.error("Респонс не ок");
+          navigate("/auth");
+          return;
+        }
+
+        setOrders(responce);
+      } catch (error) {
+      }
+    };
+
     getUser();
+    getOrders();
   }, [navigate]);
 
 
@@ -121,10 +138,12 @@ function UserProfilePage() {
     
         <h3>История покупок</h3>
         <ul className="purchase-history">
-          {history.map((item, index) => (
-            <li key={index}>
-              {item.movie} – {item.date} в {item.time} (Места: {item.seats})
-            </li>
+          {orders.map((order) => (
+            <p className="switch-auth" onClick={() => order.ticket_url}>
+              <a href={order.ticket_url} target="_blank" rel="noreferrer">
+            {order.film_title} – {order.datetime}
+            </a>
+          </p>
           ))}
         </ul>
     

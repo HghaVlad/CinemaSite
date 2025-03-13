@@ -14,6 +14,11 @@ function RegistrationPage() {
     confirmPassword: "",
   });
 
+  if (localStorage.getItem("token"))
+    {
+      navigate("/profile");
+    }
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };

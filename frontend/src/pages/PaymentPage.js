@@ -12,6 +12,12 @@ function PaymentPage() {
   const [cardHolder, setCardHolder] = useState("");
   const [cvv, setCvv] = useState("");
 
+  if (!localStorage.getItem("token"))
+    {
+      alert("Для оплаты необходимо авторизироваться на сайте");
+      navigate("/auth");
+    }
+
   const handlePayment = async (e) => {
     e.preventDefault();
 
@@ -51,8 +57,8 @@ function PaymentPage() {
       </div>
 
       <form onSubmit={handlePayment} className="payment-form">
-        <label>Номер карты:</label>
-        <input
+      <label for="ccn">Номер карты:</label>
+      <input
           type="text"
           placeholder="**** **** **** ****"
           value={cardNumber}

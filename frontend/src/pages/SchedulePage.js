@@ -42,9 +42,14 @@ function SchedulePage()
   }, []);
 
 
-  const filteredSchedule = schedule.filter(
-    (session) => (!selectedMovie || session.movieId === selectedMovie)
-  );
+  const filteredSchedule = schedule.filter((session) => {
+    const isMovieMatch = !selectedMovie || session.film_id === Number(selectedMovie);
+  
+    const sessionDate = new Date(session.datetime).toISOString().split("T")[0];
+    const isDateMatch = !selectedDate || sessionDate === selectedDate;
+  
+    return isMovieMatch && isDateMatch;
+  });
 
   return (
     <div className="schedule-page">
@@ -82,7 +87,7 @@ function SchedulePage()
               return (
                 <tr key={session.id}>
                   <td>{movie?.name}</td>
-                  <td>{session.datetime}</td>
+                  <td>{new Date(session.datetime).toLocaleString()}</td>
                   <td>{session.total_rows * session.total_places_per_row - session.booked_seats.length}</td>
                   <td>
                     <Link to={`/seats/${session.id}`}>
