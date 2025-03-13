@@ -44,12 +44,6 @@ async def pay_showtime(
     return {"status": "error", "url": ""}
 
 
-@router.get("/orders/{user_id}", response_model=List[OrderResponse])
-async def get_payment(user_id: int, payments_service: PaymentsService = Depends(get_payments_service),
-                      session: AsyncSession = Depends(get_postgres_session)):
-    return await payments_service.get_user_orders(user_id, session)
-
-
 @router.get("/orders/", response_model=List[OrderResponse])
 async def get_all_payment(payments_service: PaymentsService = Depends(get_payments_service),
                       session: AsyncSession = Depends(get_postgres_session),

@@ -1,5 +1,8 @@
+from typing import Optional
 from pydantic import BaseModel
 from decimal import Decimal
+
+from .showtime import ShowtimeResponseWithFilm
 
 class UserPayment(BaseModel):
     booking_id: int
@@ -28,6 +31,8 @@ class OrderResponse(BaseModel):
 
     created_at: str
     ticket_url: str
+
+    showtime: Optional[ShowtimeResponseWithFilm]
 
     class Config:
         from_attributes = True

@@ -3,6 +3,8 @@ from datetime import datetime
 from typing import List
 from decimal import Decimal
 
+from .films import FilmResponse
+
 
 class Seat(BaseModel):
     row: int
@@ -34,6 +36,18 @@ class ShowtimeCreate(BaseModel):
 class ShowTimeCreateResponse(BaseModel):
     id: int
     film_id: int
+    datetime: datetime
+    rows: int
+    places: int
+    price: Decimal
+
+    class Config:
+        from_attributes = True
+
+
+class ShowtimeResponseWithFilm(BaseModel):
+    id: int
+    film: FilmResponse
     datetime: datetime
     rows: int
     places: int

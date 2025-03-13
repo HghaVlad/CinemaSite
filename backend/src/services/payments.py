@@ -4,10 +4,12 @@ from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 
 from db.postgres import AsyncSession
+from models.films import Film
 from models.showtime import Showtime, Ticket
 from models.payments import Booking, Order, PaymentStatus, Payment
 from schemas.booking import MakeBooking
-from schemas.payment import UserPayment, OrderResponse, TicketResponse
+from schemas.payment import UserPayment, OrderResponse, TicketResponse, ShowtimeResponseWithFilm
+from schemas.films import FilmResponse
 from utils import process_payment
 from pdf_integration import get_ticket_url
 
@@ -70,17 +72,21 @@ class PaymentsService:
     async def get_user_orders(user_id: int, session: AsyncSession) -> List[OrderResponse]:
         # Загружаем заказы и связанные билеты с помощью JOIN
         stmt = (
-            select(Order, Ticket)
+            select(Order, Ticket, Showtime, Film)
             .join(Ticket, Order.ticket_id == Ticket.id)
+            .join(Showtime, Ticket.showtime_id == Showtime.id)
+            .join(Film, Showtime.film_id == Film.id)
             .where(Order.user_id == user_id)
         )
         result = await session.execute(stmt)
         orders_with_tickets = result.all()
 
         order_responses = []
-        for order, ticket in orders_with_tickets:
+        for order, ticket, showtime, film in orders_with_tickets:
             ticket_response = TicketResponse.from_orm(ticket)
-
+            print(order)
+            showtime = ShowtimeResponseWithFilm.from_orm(showtime)
+            showtime.film = FilmResponse.from_orm(film)
             order_response = OrderResponse(
                 id=order.id,
                 user_id=order.user_id,
@@ -88,6 +94,7 @@ class PaymentsService:
                 payment_id=order.payment_id,
                 created_at=order.created_at.isoformat(),
                 ticket_url=order.ticket_url,
+                showtime = showtime
             )
             order_responses.append(order_response)
 
