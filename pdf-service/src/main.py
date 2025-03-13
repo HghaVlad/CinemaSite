@@ -25,12 +25,12 @@ parent_dir = os.path.join(current_dir, "..", pdf_dir)
 os.makedirs(parent_dir, exist_ok=True)
 
 
-@app.get("/")
+@app.get("/pdf/")
 def hello():
-    return "Hello world!"
+    return "Pdf service is running"
 
 
-@app.post("/generate_pdf")
+@app.post("/pdf/generate_pdf")
 async def generate_pdf(ticket_data: TicketRequest, token: str = Header(None, alias="pdf_api_token")):
     """
     Generates pdf for entered data. Outputs url like /order/<pdf_id>.
@@ -55,10 +55,10 @@ async def generate_pdf(ticket_data: TicketRequest, token: str = Header(None, ali
         user_email=ticket_data.user_email
     )
 
-    return {"file_url": f"/order/{file_id}"}
+    return {"file_url": f"/pdf/order/{file_id}"}
 
 
-@app.get("/order/{file_id}")
+@app.get("pdf/order/{file_id}")
 async def get_pdf(file_id: str):
     file_path = os.path.join(parent_dir, f"{file_id}.pdf")
     if os.path.exists(file_path):

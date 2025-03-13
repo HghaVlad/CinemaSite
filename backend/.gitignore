@@ -85,9 +85,10 @@ target/
 __pycache__/
 local_settings.py
 
-.env
+../.env
 db.sqlite3
 .ruff_cache/
 media/
 venv/
 .venv/
+test.py
