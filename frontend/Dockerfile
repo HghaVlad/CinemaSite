@@ -1,6 +1,10 @@
 # Стадия 1: Сборка приложения
 FROM node:18-alpine AS build
 
+# Передача переменных окружения через ARG
+ARG REACT_APP_API_BASE_URL
+ENV REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
+
 # Установка рабочей директории
 WORKDIR /app
 

@@ -1,7 +1,7 @@
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export const signUp = async (userData) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/signup/`, {
+  const response = await fetch(`${API_BASE_URL}/auth/signup/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -13,7 +13,7 @@ export const signUp = async (userData) => {
 };
 
 export const signIn = async (credentials) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/signin`, {
+  const response = await fetch(`${API_BASE_URL}/auth/signin`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

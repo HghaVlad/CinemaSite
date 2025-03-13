@@ -18,11 +18,15 @@ services:
         build:
             context: frontend
             dockerfile: Dockerfile
+            args:
+                REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL}
         container_name: frontend
         restart: always
         depends_on:
             backend:
                 condition: service_started
+        env_file:
+            - .env
 
     db:
         image: postgres:15
@@ -67,6 +71,7 @@ services:
             - pdf-service/src/.env
         volumes:
             - pdf_data:/app
+            
     nginx:
         image: nginx
         container_name: nginx
