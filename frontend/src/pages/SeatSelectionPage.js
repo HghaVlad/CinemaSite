@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import "../styles/SeatSelectionPage.css";
-import { showtime, filmId } from "../api";
+import { showtime, filmId, book } from "../api";
 
 function SeatSelectionPage() {
   const { id } = useParams();
@@ -10,6 +10,7 @@ function SeatSelectionPage() {
   const [session, setSession] = useState(null);
   const [film, setFilm] = useState(null);
   const [bookedSeats, setBookedSeats] = useState([]);
+  const [bookingId, setBookingId] = useState([]);
 
   useEffect(() => {
     const getShowtime = async () => {
@@ -17,7 +18,7 @@ function SeatSelectionPage() {
         const response = await showtime(Number(id));
         setSession(response);
         if (response.booked_seats?.length > 0) {
-          setBookedSeats(response.booked_seats.map(seat => `${seat.row}-${seat.place}`));
+          setBookedSeats(response.booked_seats.map(seat => `${seat.row - 1}-${seat.place - 1}`));
         }
       } catch (exception) {
         console.error("Ошибка при получении сеанса:", exception);
@@ -60,7 +61,7 @@ function SeatSelectionPage() {
 
   const totalPrice = selectedSeats.length * parseInt(session.price || 0);
 
-  const goToPayment = () => {
+  const goToPayment = async() => {
     if (selectedSeats.length > 0) {
       if (!localStorage.getItem("token"))
         {
@@ -69,11 +70,30 @@ function SeatSelectionPage() {
           return;
         }
 
+        try {
+          const token = localStorage.getItem("token");
+          for (const seat of selectedSeats) {
+            const response = await book({
+              showtime_id: Number(session.id),
+              row_number: Number(seat.split("-")[0]) + 1,
+              place_number: Number(seat.split("-")[1]) + 1,
+            }, token);
+
+            setBookingId(prev => [...prev, response.id]);
+          }
+        }
+        catch(exception)
+        {
+          alert(`Ошибка при бронировании: ${exception}`);
+          navigate("/");
+        }
+
       navigate("/payment", {
         state: {
           film: film,
           session: session,
           seats: selectedSeats,
+          tickets: bookingId,
           totalPrice: totalPrice,
         },
       });

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { me, changeUser, history } from "../api";
+import "../styles/UserProfilePage.css";
 
 function UserProfilePage() {
   const [user, setUser] = useState(null);
@@ -139,9 +140,9 @@ function UserProfilePage() {
         <h3>История покупок</h3>
         <ul className="purchase-history">
           {orders.map((order) => (
-            <p className="switch-auth" onClick={() => order.ticket_url}>
+            <p className="switch-auth">
               <a href={order.ticket_url} target="_blank" rel="noreferrer">
-            {order.film_title} – {order.datetime}
+            {order.showtime.film.name} – {new Date(order.datetime).toLocaleString}
             </a>
           </p>
           ))}

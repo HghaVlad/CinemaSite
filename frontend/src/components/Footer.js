@@ -5,8 +5,8 @@ function Footer() {
   return (
     <footer className="footer">
       <div className="footer-content">
-        <p>📞 Телефон: +7 (937) 832-32-90</p>
-        <p>📧 Почта: drtakaev@edu.hse.ru</p>
+        <p>📞 Телефон: +7 (777) 777-77-77</p>
+        <p>📧 Почта: absolutecinema@edu.hse.ru</p>
       </div>
     </footer>
   );

@@ -75,7 +75,6 @@ function SchedulePage()
           <tr>
             <th>Фильм</th>
             <th>Время</th>
-            <th>Зал</th>
             <th>Свободные места</th>
             <th></th>
           </tr>

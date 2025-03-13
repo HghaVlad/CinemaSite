@@ -6,7 +6,7 @@ import { book, pay } from "../api";
 function PaymentPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { film, session, seats, totalPrice } = location.state || {};
+  const { film, session, seats, tickets, totalPrice } = location.state || {};
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -23,23 +23,42 @@ function PaymentPage() {
 
     try {
       const token = localStorage.getItem("token");
+      let isOk = true;
       for (const seat of seats) {
-        const response = await book({
-          showtime_id: Number(session.id),
-          row_number: Number(seat.split("-")[0]),
-          place_number: Number(seat.split("-")[1]),
-        }, token);
-
-        await pay({
-          booking_id: response.id,
+        const payResponse = await pay({
+          booking_id: tickets.id,
           card_number: cardNumber,
           card_holder: cardHolder,
           cvv: cvv,
         }, token);
+
+        if (payResponse.status === "failed")
+        {
+          alert("Оплата не прошла");
+          isOk = false;
+          break;
+        }
+
+        if (payResponse.status === "not_enough_money")
+        {
+          alert("На карте недостаточно средств");
+          isOk = false;
+          break;
+        }
+
+        if(payResponse.status !== "success")
+        {
+          alert("Ошибка при оплате");
+          isOk = false;
+          break;
+        }
       }
 
-      alert("Оплата прошла успешно!");
-      navigate("/");
+      if (isOk)
+      {
+        alert("Оплата прошла успешно!");
+        navigate("/");
+      }
     } catch (exception) {
       alert(`Ошибка при оплате: ${exception}`);
     }
