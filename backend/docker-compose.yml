@@ -1,0 +1,77 @@
+version: "3.1"
+
+services:
+    backend:
+        container_name: apisite
+        build: .
+        ports:
+            - "8000:8000"
+        depends_on:
+            db:
+                condition: service_healthy
+            redis:
+                condition: service_healthy
+            pdf:
+                condition: service_started
+        env_file:
+            - .env
+
+    frontend:
+        build:
+            context: ../frontend
+            dockerfile: Dockerfile
+        container_name: frontend
+        restart: always
+        ports:
+          - "3000:3000"
+        depends_on:
+            backend:
+                condition: service_started
+
+    db:
+        image: postgres:15
+        container_name: postgres_db
+        restart: always
+        env_file:
+            - .env
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+    redis:
+        image: redis:latest
+        container_name: redis-cache
+        restart: always
+        env_file:
+            - .env
+        command: /bin/sh -c "redis-server --requirepass $$REDIS_PASSWORD"
+        ports:
+            - "6379:6379"
+        healthcheck:
+            test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        volumes:
+            - redis_data:/data
+
+    pdf:
+        build:
+            context: ../pdf-service
+            dockerfile: Dockerfile
+        container_name: pdf-service
+        restart: always
+        env_file:
+            - ../pdf-service/src/.env
+        ports:
+            - "8001:8001"
+
+volumes:
+    postgres_data:
+    redis_data:

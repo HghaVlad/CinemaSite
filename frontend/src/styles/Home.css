@@ -1,0 +1,53 @@
+.home {
+    padding: 20px;
+    text-align: center;
+  }
+  
+  .home h2 {
+    font-size: 40px;
+    margin-bottom: 50px;
+  }
+  
+  /* Контейнер для списка фильмов */
+  .movies-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  /* Карточка фильма */
+  .movie-card {
+    background-color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px black;
+    transition: transform 0.3s ease;
+    width: 200px;
+    text-align: center;
+  }
+  
+  /* Эффект увеличения при наведении */
+  .movie-card:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Изображение фильма */
+  .movie-card img {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+  }
+
+  .movie-card h3 {
+    font-size: 18px;
+    margin: 10px 0;
+    color: black;
+  }
+  
+  /* Ссылка без подчеркивания */
+  .movie-card a {
+    text-decoration: none;
+    color: inherit;
+  }
+  
