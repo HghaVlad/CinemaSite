@@ -27,10 +27,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(ping_router)
-app.include_router(users_router)
-app.include_router(films_router)
-app.include_router(showtime_router)
+app.include_router(ping_router, prefix="/api", tags=["ping"])
+app.include_router(users_router, prefix="/api", tags=["users"])
+app.include_router(films_router, prefix="/api", tags=["films"])
+app.include_router(showtime_router, prefix="/api", tags=["showtime"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(payments_router, prefix="/payments", tags=["payments"])
 
