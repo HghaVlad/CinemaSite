@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../styles/PaymentPage.css";
-import { book, pay } from "../api";
+import { pay } from "../api";
 
 function PaymentPage() {
   const location = useLocation();
@@ -21,53 +21,84 @@ function PaymentPage() {
   const handlePayment = async (e) => {
     e.preventDefault();
 
-    try {
       const token = localStorage.getItem("token");
-      let isOk = true;
+      let isOk = false;
+      let isNotificated = false;
+      console.log(tickets[0])
       for (const ticket of tickets) {
-        const payResponse = await pay({
-          booking_id: ticket,
-          card_number: cardNumber,
-          card_holder: cardHolder,
-          cvv: cvv,
-        }, token);
-        if(payResponse.status !== "success")
+        try
         {
-          alert("Ошибка при оплате");
-          isOk = false;
-          break;
-        }
-      }
-
-      if (isOk)
-      {
-        alert("Оплата прошла успешно!");
-        navigate("/");
-      }
-    } catch (exception) {
-      if (payResponse.status === "failed")
-        {
+            const payResponse = await pay({
+            booking_id: ticket,
+            card_number: cardNumber,
+            card_holder: cardHolder,
+            cvv: cvv,
+          }, token);
+          console.log(payResponse)
+          if(payResponse.status === "success" && !isNotificated)
+          {
+            alert("Оплата прошла успешно!");
+            isNotificated = true;
+            isOk = true;
+          }
+          else{
+            console.log("Hehe")
+            console.log(payResponse)
+            console.log(isNotificated)
+        if (payResponse.status === "failed" && !isNotificated) {
           alert("Оплата не прошла");
-          isOk = false;
-          return;
+          isNotificated = true;
         }
       
-        if (payResponse.status === "not_enough_money")
-          {
-            alert("На карте недостаточно средств");
-            isOk = false;
-            return;
+        else if (payResponse.status === "not_enough_money" && isNotificated) {
+          alert("На карте недостаточно средств");
+          isNotificated = true;
+        }
+      
+        else if (payResponse.detail === "Booking not found" && isNotificated) {
+          alert("Ошибка: бронирование не найдено");
+          isNotificated = true;
+        }
+        else if (isNotificated == false){
+          alert(`Ошибка при оплате`);
+          isNotificated = true;
+        }
+        console.log(isNotificated)
           }
-        
-          if (payResponse.detail === "Booking not found")
-            {
-              alert("Бро, ты(или я) забукал неправильно");
-              isOk = false;
-              return;
-            }
+      }
 
-        alert(`Ошибка при оплате: ${exception}`);
-    }
+       catch (exception) {
+        const errorDetail = exception?.response?.data;
+        console.log(errorDetail)
+        console.log(exception)
+        console.log(exception?.response)
+        console.log(isNotificated)
+        if (errorDetail.status === "failed" && !isNotificated) {
+          alert("Оплата не прошла");
+          isNotificated = true;
+        }
+      
+        else if (errorDetail.status === "not_enough_money" && isNotificated) {
+          alert("На карте недостаточно средств");
+          isNotificated = true;
+        }
+      
+        else if (errorDetail.detail === "Booking not found" && isNotificated) {
+          alert("Ошибка: бронирование не найдено");
+          isNotificated = true;
+        }
+        else if (isNotificated == false){
+          alert(`Ошибка при оплате: ${exception.message || exception}`);
+          isNotificated = true;
+        }
+        console.log(isNotificated)
+        
+      }
+      }
+
+      
+    navigate("/");
+    
   };
 
   return (
@@ -94,7 +125,7 @@ function PaymentPage() {
         <label>Владелец карты:</label>
         <input
           type="text"
-          placeholder="SURNAME NAME"
+          placeholder="FULLNAME"
           value={cardHolder}
           onChange={(e) => setCardHolder(e.target.value)}
           required

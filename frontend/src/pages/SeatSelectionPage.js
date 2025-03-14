@@ -10,7 +10,6 @@ function SeatSelectionPage() {
   const [session, setSession] = useState(null);
   const [film, setFilm] = useState(null);
   const [bookedSeats, setBookedSeats] = useState([]);
-  const [bookingId, setBookingId] = useState([]);
 
   useEffect(() => {
     const getShowtime = async () => {
@@ -62,6 +61,8 @@ function SeatSelectionPage() {
   const totalPrice = selectedSeats.length * parseInt(session.price || 0);
 
   const goToPayment = async() => {
+    let bookingIds = [];
+
     if (selectedSeats.length > 0) {
       if (!localStorage.getItem("token"))
         {
@@ -72,14 +73,14 @@ function SeatSelectionPage() {
 
         try {
           const token = localStorage.getItem("token");
-          for (const seat of selectedSeats) {
+                    for (const seat of selectedSeats) {
             const response = await book({
               showtime_id: Number(session.id),
               row_number: Number(seat.split("-")[0]) + 1,
               place_number: Number(seat.split("-")[1]) + 1,
             }, token);
 
-            setBookingId(prev => [...prev, response.id]);
+            bookingIds.push(response.id);
           }
         }
         catch(exception)
@@ -93,7 +94,7 @@ function SeatSelectionPage() {
           film: film,
           session: session,
           seats: selectedSeats,
-          tickets: bookingId,
+          tickets: bookingIds,
           totalPrice: totalPrice,
         },
       });
