@@ -24,28 +24,13 @@ function PaymentPage() {
     try {
       const token = localStorage.getItem("token");
       let isOk = true;
-      for (const seat of seats) {
+      for (const ticket of tickets) {
         const payResponse = await pay({
-          booking_id: tickets.id,
+          booking_id: ticket,
           card_number: cardNumber,
           card_holder: cardHolder,
           cvv: cvv,
         }, token);
-
-        if (payResponse.status === "failed")
-        {
-          alert("Оплата не прошла");
-          isOk = false;
-          break;
-        }
-
-        if (payResponse.status === "not_enough_money")
-        {
-          alert("На карте недостаточно средств");
-          isOk = false;
-          break;
-        }
-
         if(payResponse.status !== "success")
         {
           alert("Ошибка при оплате");
@@ -60,7 +45,28 @@ function PaymentPage() {
         navigate("/");
       }
     } catch (exception) {
-      alert(`Ошибка при оплате: ${exception}`);
+      if (payResponse.status === "failed")
+        {
+          alert("Оплата не прошла");
+          isOk = false;
+          return;
+        }
+      
+        if (payResponse.status === "not_enough_money")
+          {
+            alert("На карте недостаточно средств");
+            isOk = false;
+            return;
+          }
+        
+          if (payResponse.detail === "Booking not found")
+            {
+              alert("Бро, ты(или я) забукал неправильно");
+              isOk = false;
+              return;
+            }
+
+        alert(`Ошибка при оплате: ${exception}`);
     }
   };
 
