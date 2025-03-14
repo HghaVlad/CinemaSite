@@ -15,7 +15,8 @@ class PaymentStatus(str, enum.Enum):
 class Booking(Base):
     __tablename__ = "bookings"
     id = Column(Integer, primary_key=True)
-    ticket_id = Column(Integer, ForeignKey("tickets.id"))
+    # Make ForeignKey on delete null
+    ticket_id = Column(Integer, ForeignKey("tickets.id", ondelete="SET NULL"), nullable=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     price = Column(DECIMAL(10, 2))
@@ -24,7 +25,7 @@ class Booking(Base):
 class Payment(Base):
     __tablename__ = "payments"
     id = Column(Integer, primary_key=True)
-    booking_id = Column(Integer, ForeignKey("bookings.id"))
+    booking_id = Column(Integer, ForeignKey("bookings.id", ondelete="SET NULL"), nullable=True)
     card_number = Column(String)
     card_holder = Column(String)
     cvv = Column(Integer)
