@@ -42,27 +42,19 @@ def generate_new_password():
     """
 
     length = random.randint(8, 16)
-
-    # Define character sets
     lowercase = string.ascii_lowercase
     uppercase = string.ascii_uppercase
     digits = string.digits
 
-    # Ensure at least one character from each set
     password = [
         random.choice(lowercase),
         random.choice(uppercase),
         random.choice(digits),
     ]
-
-    # Fill the rest of the password with random choices from all sets
     all_characters = lowercase + uppercase + digits
     password += random.choices(all_characters, k=length - 3)
 
-    # Shuffle the password to avoid predictable patterns
     random.shuffle(password)
-
-    # Convert the list to a string
     return ''.join(password)
 
 

@@ -4,18 +4,17 @@ from db.postgres import get_postgres_session, AsyncSession
 
 from services.showtime import ShowtimeService, get_showtime_service
 from services.JwtService import JwtService
-from services.users import get_user_service, UsersService
+from services.users import get_user_service
 from schemas.showtime import ShowtimeResponse, ShowtimeListResponse, ShowtimeCreate, ShowTimeCreateResponse
 
-
-router = APIRouter(tags=["showtimes"])
+router = APIRouter(tags=["showtime"])
 
 
 @router.get("/showtimes/{showtime_id}", response_model=ShowtimeResponse)
 async def get_showtime_details(
-    showtime_id: int,
-    showtime_service: ShowtimeService = Depends(get_showtime_service),
-    session: AsyncSession = Depends(get_postgres_session),
+        showtime_id: int,
+        showtime_service: ShowtimeService = Depends(get_showtime_service),
+        session: AsyncSession = Depends(get_postgres_session),
 ):
     showtime = await showtime_service.get_showtime_details(showtime_id, session)
     if not showtime:
@@ -25,8 +24,8 @@ async def get_showtime_details(
 
 @router.get("/showtimes", response_model=ShowtimeListResponse)
 async def get_all_showtimes(
-    showtime_service: ShowtimeService = Depends(get_showtime_service),
-    session: AsyncSession = Depends(get_postgres_session),
+        showtime_service: ShowtimeService = Depends(get_showtime_service),
+        session: AsyncSession = Depends(get_postgres_session),
 ):
     showtimes = await showtime_service.get_all_showtimes(session)
     if not showtimes:
@@ -38,9 +37,8 @@ async def get_all_showtimes(
 async def create_showtime(showtime_data: ShowtimeCreate,
                           showtime_service: ShowtimeService = Depends(get_showtime_service),
                           session: AsyncSession = Depends(get_postgres_session),
-                          user_service = Depends(get_user_service),
+                          user_service=Depends(get_user_service),
                           credentials: HTTPAuthorizationCredentials = Security(JwtService.BearerScheme)):
-
     token = credentials.credentials
     my_user = await user_service.get_user_by_jwt(token, session)
     if not my_user.is_admin:

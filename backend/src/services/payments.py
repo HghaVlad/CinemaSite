@@ -28,13 +28,14 @@ class PaymentsService:
             raise HTTPException(status_code=400, detail="Place number is out of range")
 
         result = await session.execute(
-            select(Ticket).where(Ticket.showtime_id == showtime.id, Ticket.row == booking.row_number, Ticket.place == booking.place_number)
+            select(Ticket).where(Ticket.showtime_id == showtime.id, Ticket.row == booking.row_number,
+                                 Ticket.place == booking.place_number)
         )
-        if ticket := result.scalar():
-                raise HTTPException(status_code=400, detail="Ticket is already booked")
+        if result.scalar():
+            raise HTTPException(status_code=400, detail="Ticket is already booked")
 
-
-        ticket = Ticket(showtime_id=showtime.id, row=booking.row_number, place=booking.place_number, price=showtime.price)
+        ticket = Ticket(showtime_id=showtime.id, row=booking.row_number, place=booking.place_number,
+                        price=showtime.price)
         session.add(ticket)
         await session.commit()
         await session.refresh(ticket)
@@ -55,18 +56,21 @@ class PaymentsService:
         status = process_payment(payment)
         booking.status = status
 
-        new_payment = Payment(booking_id=booking.id, card_number=payment.card_number, card_holder=payment.card_holder, cvv=payment.cvv, status=status)
+        new_payment = Payment(booking_id=booking.id, card_number=payment.card_number, card_holder=payment.card_holder,
+                              cvv=payment.cvv, status=status)
         session.add(new_payment)
         await session.commit()
-        
+
         ticket_url = ""
         if status == PaymentStatus.SUCCESS:
             try:
                 ticket_url = await get_ticket_url(booking, session)
-            except:
+            except Exception as e:
+                print(f"Failed to get ticket url: {e}")
                 ticket_url = ""
 
-            order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id, ticket_url=ticket_url)
+            order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id,
+                          ticket_url=ticket_url)
             session.add(order)
             await session.commit()
             await session.refresh(booking)
@@ -75,7 +79,7 @@ class PaymentsService:
             await session.delete(booking)
             await session.delete(ticket)
             await session.commit()
-            
+
         return status, ticket_url
 
     @staticmethod
@@ -104,7 +108,7 @@ class PaymentsService:
                 payment_id=order.payment_id,
                 created_at=order.created_at.isoformat(),
                 ticket_url=order.ticket_url,
-                showtime = showtime
+                showtime=showtime
             )
             order_responses.append(order_response)
 

@@ -33,7 +33,7 @@ async def get_ticket_url(booking: Booking, session: AsyncSession) -> str:
     headers = {
         "pdf_api_token": settings.pdf_api_token
     }
-    print(url, data)
+
     response = requests.post(url, json=data, headers=headers)
 
     if response.status_code == 200:

@@ -1,8 +1,9 @@
 from typing import Optional
-from pydantic import BaseModel
 from decimal import Decimal
+from pydantic import BaseModel
 
 from .showtime import ShowtimeResponseWithFilm
+
 
 class UserPayment(BaseModel):
     booking_id: int
@@ -36,4 +37,3 @@ class OrderResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
