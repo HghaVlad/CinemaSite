@@ -13,7 +13,7 @@ TIME_TO_DELETE: int = 300
 async def clear():
     while True:
         try:
-            async with get_postgres_session() as session:
+            async for session in get_postgres_session():
                 stmt = (
                     select(Payment.booking_id)
                     .where(Payment.status == PaymentStatus.SUCCESS)
@@ -39,7 +39,8 @@ async def clear():
                     await session.execute(stmt)
                     await session.commit()
 
+            await sleep(TIME_TO_DELETE)
+
         except Exception as e:
             print(e)
-            await sleep(10)
-        await sleep(TIME_TO_DELETE)
+            await sleep(5)
