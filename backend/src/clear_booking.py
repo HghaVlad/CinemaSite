@@ -1,9 +1,9 @@
 from asyncio import sleep
 
 from datetime import datetime, timedelta
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, and_
 from db.postgres import get_postgres_session
-from models.payments import Booking
+from models.payments import Booking, Payment, PaymentStatus
 from models.showtime import Ticket
 
 
@@ -11,28 +11,31 @@ TIME_TO_DELETE: int = 300
 
 async def clear():
     while True:
-        async for session in get_postgres_session():
+        async with get_postgres_session() as session:
             stmt = (
-                select(Booking)
-                .where(datetime.now() - Booking.created_at >= timedelta(seconds=TIME_TO_DELETE))
+                select(Payment.booking_id)
+                .where(Payment.status == PaymentStatus.SUCCESS)
             )
             result = await session.execute(stmt)
-            expired_bookings = result.scalars().all()
+            successed_payments = result.scalars().all()
 
-            if expired_bookings:
-                ticket_ids_to_delete = [booking.ticket_id for booking in expired_bookings]
-                stmt = (
-                    delete(Ticket)
-                    .where(Ticket.id.in_(ticket_ids_to_delete))
-                )
+            smt = (
+                select(Booking.id)
+                .where(and_(Booking.created_at < datetime.now() - timedelta(seconds=TIME_TO_DELETE),
+                            Booking.created_at > datetime.now() - timedelta(seconds=TIME_TO_DELETE * 5)))
+            )
+
+            result = await session.execute(smt)
+            all_bookings = result.scalars().all()
+
+            failed_payments = [booking for booking in all_bookings if booking not in successed_payments]
+
+
+            if failed_payments:
+                stmt = delete(Ticket).where(Ticket.id.in_(failed_payments))
                 await session.execute(stmt)
-
-                stmt = (
-                    delete(Booking)
-                    .where(datetime.now() - Booking.created_at >= timedelta(seconds=TIME_TO_DELETE))
-                )
+                stmt = delete(Booking).where(Booking.id.in_(failed_payments))
                 await session.execute(stmt)
-
                 await session.commit()
 
         await sleep(TIME_TO_DELETE)
