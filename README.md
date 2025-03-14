@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # CinemaSite
 
 ## Сайт для офлайн кинотеатра
@@ -168,6 +167,3 @@ docker-compose down
 - **Подвал (Footer)** :
     
     - Контактная информация и социальные сети.
-=======
-# CinemaSite
->>>>>>> cf7aced (Initial commit)
