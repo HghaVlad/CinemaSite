@@ -17,13 +17,13 @@ async def clear():
                 .where(datetime.now() - Booking.created_at >= timedelta(seconds=TIME_TO_DELETE))
             )
             result = await session.execute(stmt)
-            expired_bookings = result.scalars().all()  # Используем scalars() для получения объектов
+            expired_bookings = result.scalars().all()
 
             if expired_bookings:
                 ticket_ids_to_delete = [booking.ticket_id for booking in expired_bookings]
                 stmt = (
                     delete(Ticket)
-                    .where(Ticket.id.in_(ticket_ids_to_delete))  # Используем .in_() для оператора IN
+                    .where(Ticket.id.in_(ticket_ids_to_delete))
                 )
                 await session.execute(stmt)
 

@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from services.films import get_film_service, FilmsService
 from services.JwtService import JwtService
-from services.users import get_user_service, UsersService
+from services.users import get_user_service
 from schemas.films import FilmResponse, FilmListResponse, FilmCreate
 from db.postgres import get_postgres_session, AsyncSession
 
