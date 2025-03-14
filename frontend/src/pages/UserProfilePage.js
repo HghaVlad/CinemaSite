@@ -147,7 +147,7 @@ function UserProfilePage() {
           {orders.length > 0? (orders.map((order) => (
             <p className="switch-auth">
               <a href={order.ticket_url} target="_blank" rel="noreferrer">
-            {order.showtime.film.name} – {new Date(order.showtime.datetime).toLocaleString}
+            {order.showtime.film.name}
             </a>
           </p>
           )))
