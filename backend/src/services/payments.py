@@ -72,7 +72,7 @@ class PaymentsService:
         ticket_url = ""
         if status == PaymentStatus.SUCCESS:
             try:
-                ticket_url = await get_ticket_url(booking=booking)
+                ticket_url = await get_ticket_url(booking=booking, session=session)
             except:
                 ticket_url = ""
 
