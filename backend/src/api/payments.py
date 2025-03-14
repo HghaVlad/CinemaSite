@@ -11,12 +11,11 @@ from models.payments import PaymentStatus
 from schemas.booking import MakeBooking, BookingResponse
 from schemas.payment import UserPayment, OrderResponse
 
-
 router = APIRouter(tags=["payments"])
 
 
 @router.post("/book/", response_model=BookingResponse)
-async def book_showtime(ticket: MakeBooking,  payments_service: PaymentsService = Depends(get_payments_service),
+async def book_showtime(ticket: MakeBooking, payments_service: PaymentsService = Depends(get_payments_service),
                         session: AsyncSession = Depends(get_postgres_session),
                         user_service: UsersService = Depends(get_user_service),
                         credentials: HTTPAuthorizationCredentials = Security(JwtService.BearerScheme)):
@@ -27,29 +26,29 @@ async def book_showtime(ticket: MakeBooking,  payments_service: PaymentsService 
     return BookingResponse.model_validate(booking)
 
 
-@router.post("/pay/", response_model_include={"status": "success", "url": str})
+@router.post("/pay/", )
 async def pay_showtime(
-    payment: UserPayment,
-    payments_service: PaymentsService = Depends(get_payments_service),
-    session: AsyncSession = Depends(get_postgres_session)
+        payment: UserPayment,
+        payments_service: PaymentsService = Depends(get_payments_service),
+        session: AsyncSession = Depends(get_postgres_session)
 ) -> Dict[str, str]:
     status, ticket_url = await payments_service.pay_showtime(payment, session)
 
     if status == PaymentStatus.SUCCESS:
         return {"status": "success", "url": ticket_url}
     elif status == PaymentStatus.FAILED:
-        return JSONResponse(status_code=400, content={"status": "failed", "url": ""})
+        return JSONResponse(content={"status": "failed", "url": ""}, status_code=400)
     elif status == PaymentStatus.NOT_ENOUGH_MONEY:
-        return JSONResponse(status=400, content={"status": "not_enough_money", "url": ""})
+        return JSONResponse(content={"status": "not_enough_money", "url": ""}, status_code=400)
 
-    return JSONResponse(status_code=400, content={"status": "error", "url": ""})
+    return JSONResponse(content={"status": "error", "url": ""}, status_code=400)
 
 
 @router.get("/orders/", response_model=List[OrderResponse])
 async def get_all_payment(payments_service: PaymentsService = Depends(get_payments_service),
-                      session: AsyncSession = Depends(get_postgres_session),
-                      user_service: UsersService = Depends(get_user_service),
-                      credentials: HTTPAuthorizationCredentials = Security(JwtService.BearerScheme)):
+                          session: AsyncSession = Depends(get_postgres_session),
+                          user_service: UsersService = Depends(get_user_service),
+                          credentials: HTTPAuthorizationCredentials = Security(JwtService.BearerScheme)):
     token = credentials.credentials
     user = await user_service.get_user_by_jwt(token, session)
     return await payments_service.get_user_orders(user.id, session)

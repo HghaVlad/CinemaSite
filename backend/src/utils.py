@@ -42,33 +42,29 @@ def generate_new_password():
     """
 
     length = random.randint(8, 16)
-
-    # Define character sets
     lowercase = string.ascii_lowercase
     uppercase = string.ascii_uppercase
     digits = string.digits
 
-    # Ensure at least one character from each set
     password = [
         random.choice(lowercase),
         random.choice(uppercase),
         random.choice(digits),
     ]
-
-    # Fill the rest of the password with random choices from all sets
     all_characters = lowercase + uppercase + digits
     password += random.choices(all_characters, k=length - 3)
 
-    # Shuffle the password to avoid predictable patterns
     random.shuffle(password)
-
-    # Convert the list to a string
     return ''.join(password)
 
 
 def process_payment(payment: UserPayment) -> PaymentStatus:
     if payment.cvv == 123 and payment.card_number == "1234567890123456" and payment.card_holder == "John Doe":
         return PaymentStatus.SUCCESS
+    elif payment.card_number == "2222222222222222":
+        return PaymentStatus.NOT_ENOUGH_MONEY
+    elif payment.card_number == "3333333333333333":
+        return PaymentStatus.ERROR
     elif payment.card_number == "1111111111111111":
         return PaymentStatus.SUCCESS
     elif payment.cvv == 000 or len(payment.card_number) < 16 or payment.card_number == "0000000000000000" or len(payment.card_holder) < 3:

@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from services.films import get_film_service, FilmsService
 from services.JwtService import JwtService
-from services.users import get_user_service, UsersService
+from services.users import get_user_service
 from schemas.films import FilmResponse, FilmListResponse, FilmCreate
 from db.postgres import get_postgres_session, AsyncSession
 
@@ -25,6 +25,7 @@ async def get_films_list(film_service: FilmsService = Depends(get_film_service),
     film_list = await film_service.get_all_films(session)
     if not film_list:
         raise HTTPException(status_code=404, detail="Films not found")
+
     return FilmListResponse.model_validate(film_list)
 
 
@@ -32,8 +33,7 @@ async def get_films_list(film_service: FilmsService = Depends(get_film_service),
 async def create_film(film_data: FilmCreate, film_service: FilmsService = Depends(get_film_service),
                       session: AsyncSession = Depends(get_postgres_session),
                       credentials: HTTPAuthorizationCredentials = Security(JwtService.BearerScheme),
-                      user_service = Depends(get_user_service)):
-
+                      user_service=Depends(get_user_service)):
     token = credentials.credentials
     my_user = await user_service.get_user_by_jwt(token, session)
     if not my_user.is_admin:

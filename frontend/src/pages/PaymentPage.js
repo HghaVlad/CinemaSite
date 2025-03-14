@@ -49,13 +49,12 @@ function PaymentPage() {
           alert("Оплата не прошла");
           isNotificated = true;
         }
-      
-        else if (payResponse.status === "not_enough_money" && isNotificated) {
+        else if (payResponse.status === "not_enough_money" && !isNotificated) {
           alert("На карте недостаточно средств");
           isNotificated = true;
         }
       
-        else if (payResponse.detail === "Booking not found" && isNotificated) {
+        else if (payResponse.detail === "Booking not found" && !isNotificated) {
           alert("Ошибка: бронирование не найдено");
           isNotificated = true;
         }

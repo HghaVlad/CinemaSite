@@ -34,6 +34,7 @@ async def get_pdf(file_id: str):
     else:
         raise HTTPException(status_code=404, detail="File not found")
 
+
 @app.get("/pdf/")
 def hello():
     return "Pdf service is running"

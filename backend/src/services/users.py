@@ -12,7 +12,6 @@ from models.users import User
 from db.postgres import get_postgres_session
 from core.config import settings
 
-
 from schemas.auth import SignUpRequest, SignInRequest, UpdatePasswordRequest, UpdateUserRequest
 from utils import send_registration_email, generate_new_password, send_reset_password_email
 
@@ -32,15 +31,12 @@ class UsersService:
         else:
             raise HTTPException(status_code=401, detail="Unauthorized")
 
-
     async def get_user_by_id(self, user_id, session: AsyncSession):
         return await session.get(User, user_id)
-
 
     async def get_user_by_email(self, email: str, session: AsyncSession):
         result = await session.execute(select(User).where(User.email == email))
         return result.scalars().first()
-
 
     async def get_user_by_jwt(self, token: str, session: AsyncSession):
         credentials_exception = HTTPException(
@@ -71,7 +67,6 @@ class UsersService:
 
         return user
 
-
     async def register_user(self, data: SignUpRequest, session: AsyncSession) -> User:
 
         if await self.get_user_by_email(str(data.email), session):
@@ -89,9 +84,8 @@ class UsersService:
         try:
             await send_registration_email(str(data.email), data.name)
         except:
-            return user
+            pass
         return user
-
 
     async def authenticate_user(self, data: SignInRequest, session: AsyncSession) -> int:
         result = await session.execute(select(User).where(User.email == data.email))
@@ -109,14 +103,12 @@ class UsersService:
             )
         return user.id
 
-
     # Not working
     async def remove_user(self, user_id: int):
         async with get_postgres_session() as session:
             user = await self.get_user_by_id(user_id, session)
             await session.delete(user)
             await session.commit()
-
 
     async def update_user_data(self, user: User, request: Request, data: UpdateUserRequest, session: AsyncSession):
         """
@@ -134,7 +126,6 @@ class UsersService:
         await session.commit()
         return user
 
-
     async def change_password(self, user: User, request: Request, data: UpdatePasswordRequest, session: AsyncSession):
 
         if not self.PasswordContext.verify(data.old_password, user.hashed_password):
@@ -147,7 +138,6 @@ class UsersService:
         await session.commit()
         return user
 
-
     async def reset_password(self, request: Request, session: AsyncSession):
         user = await self.get_user_by_cookie_request(request, session)
         new_password = generate_new_password()
@@ -157,7 +147,6 @@ class UsersService:
         await session.commit()
         await session.refresh(user)
         return user
-
 
 
 @lru_cache()

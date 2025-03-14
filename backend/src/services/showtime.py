@@ -13,7 +13,6 @@ class ShowtimeService:
     def __init__(self):
         pass
 
-
     async def get_showtime_details(self, showtime_id: int, session: AsyncSession) -> Optional[ShowtimeResponse]:
         query = (
             select(Showtime)
@@ -41,7 +40,6 @@ class ShowtimeService:
             price=showtime.price,
             booked_seats=booked_seats,
         )
-    
 
     async def get_all_showtimes(self, session: AsyncSession) -> List[ShowtimeResponse]:
         query = (
@@ -76,7 +74,7 @@ class ShowtimeService:
         new_showtime = Showtime(
             film_id=showtime_data.film_id,
             datetime=showtime_data.datetime.replace(tzinfo=None),
-            total_tickets=showtime_data.rows* showtime_data.places,
+            total_tickets=showtime_data.rows * showtime_data.places,
             rows=showtime_data.rows,
             places=showtime_data.places,
             price=showtime_data.price)
