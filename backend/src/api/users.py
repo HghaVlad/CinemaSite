@@ -11,8 +11,12 @@ router = APIRouter(tags=["users"])
 
 @router.get("/users/{user_id}", response_model=UserResponse)
 async def get_user(user_id: int, user_service=Depends(get_user_service),
+                    credentials: HTTPAuthorizationCredentials = Security(JwtService.BearerScheme),
                    session: AsyncSession = Depends(get_postgres_session)):
-
+    token = credentials.credentials
+    my_user = await user_service.get_user_by_jwt(token, session)
+    if not my_user.is_admin:
+        raise HTTPException(status_code=403, detail="Only admin can get other users")
     user = await user_service.get_user_by_id(user_id, session)
 
     if not user:

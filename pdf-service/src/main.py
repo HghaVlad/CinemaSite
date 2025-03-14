@@ -25,6 +25,15 @@ parent_dir = os.path.join(current_dir, "..", pdf_dir)
 os.makedirs(parent_dir, exist_ok=True)
 
 
+@app.get("/pdf/order/{file_id}")
+async def get_pdf(file_id: str):
+    print(file_id)
+    file_path = os.path.join(parent_dir, f"{file_id}.pdf")
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="application/pdf")
+    else:
+        raise HTTPException(status_code=404, detail="File not found")
+
 @app.get("/pdf/")
 def hello():
     return "Pdf service is running"
@@ -56,15 +65,6 @@ async def generate_pdf(ticket_data: TicketRequest, token: str = Header(None, ali
     )
 
     return {"file_url": f"/pdf/order/{file_id}"}
-
-
-@app.get("pdf/order/{file_id}")
-async def get_pdf(file_id: str):
-    file_path = os.path.join(parent_dir, f"{file_id}.pdf")
-    if os.path.exists(file_path):
-        return FileResponse(file_path, media_type="application/pdf")
-    else:
-        raise HTTPException(status_code=404, detail="File not found")
 
 
 if __name__ == "__main__":
