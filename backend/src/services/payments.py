@@ -1,5 +1,6 @@
 from functools import lru_cache
 from typing import List, Tuple
+from datetime import datetime, timedelta
 from fastapi.exceptions import HTTPException
 from sqlalchemy import select
 
@@ -30,8 +31,18 @@ class PaymentsService:
         result = await session.execute(
             select(Ticket).where(Ticket.showtime_id == showtime.id, Ticket.row == booking.row_number, Ticket.place == booking.place_number)
         )
-        if result.scalar():
-            raise HTTPException(status_code=400, detail="Ticket is already booked")
+        if ticket := result.scalar():
+            result = await session.execute(
+                select(Booking).where(Booking.ticket_id == ticket.id)
+            )
+            another_booking = result.scalar()
+            if another_booking and another_booking.created_at + timedelta(minutes=5) < datetime.utcnow():
+                await session.delete(another_booking)
+                await session.delete(ticket)
+                await session.commit()
+            else:
+                raise HTTPException(status_code=400, detail="Ticket is already booked")
+
 
         ticket = Ticket(showtime_id=showtime.id, row=booking.row_number, place=booking.place_number, price=showtime.price)
         session.add(ticket)
@@ -65,14 +76,12 @@ class PaymentsService:
             order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id, ticket_url=ticket_url)
             session.add(order)
             await session.commit()
+            await session.refresh(booking)
         else:
             ticket = await session.get(Ticket, booking.ticket_id)
             await session.delete(ticket)
             await session.delete(booking)
             await session.commit()
-
-        await session.refresh(booking)
-
             
         return (status, ticket_url)
 
