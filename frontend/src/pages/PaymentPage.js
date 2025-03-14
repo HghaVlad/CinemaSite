@@ -6,7 +6,7 @@ import { pay } from "../api";
 function PaymentPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { film, session, seats, tickets, totalPrice } = location.state || {};
+  const { film, session, tickets, totalPrice } = location.state || {};
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -108,7 +108,6 @@ function PaymentPage() {
       <div className="order-summary">
         <h3>{film.name}</h3>
         <p>Сеанс: {new Date(session.datetime).toLocaleString("ru-RU")}</p>
-        <p>Выбранные места: {seats.join(", ")}</p>
         <p>Общая стоимость: {totalPrice} ₽</p>
       </div>
 

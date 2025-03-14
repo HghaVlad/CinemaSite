@@ -88,12 +88,10 @@ function SeatSelectionPage() {
           alert(`Ошибка при бронировании: ${exception}`);
           navigate("/");
         }
-
       navigate("/payment", {
         state: {
           film: film,
           session: session,
-          seats: selectedSeats,
           tickets: bookingIds,
           totalPrice: totalPrice,
         },
