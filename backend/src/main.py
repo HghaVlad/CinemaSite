@@ -1,4 +1,6 @@
+import asyncio
 import uvicorn
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
@@ -10,13 +12,23 @@ from api.auth import router as auth_router
 from api.films import router as films_router
 from api.showtime import router as showtime_router
 from api.payments import router as payments_router
+from clear_booking import clear, TIME_TO_DELETE
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    asyncio.create_task(clear())
+    print(f"Background booking deletion started with sleep time = {TIME_TO_DELETE}s.")
+    yield
+
 
 app = FastAPI(
     title="Сайт для Кинотеатра",
     docs_url="/api/docs",
     openapi_url="/api/openapi.json",
     default_response_class=JSONResponse,
-    swagger_ui_parameters={"oauth2RedirectUrl": "/docs/oauth2-redirect"}
+    swagger_ui_parameters={"oauth2RedirectUrl": "/docs/oauth2-redirect"},
+    lifespan=lifespan
 )
 
 app.add_middleware(
