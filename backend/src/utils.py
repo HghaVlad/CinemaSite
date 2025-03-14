@@ -69,6 +69,10 @@ def generate_new_password():
 def process_payment(payment: UserPayment) -> PaymentStatus:
     if payment.cvv == 123 and payment.card_number == "1234567890123456" and payment.card_holder == "John Doe":
         return PaymentStatus.SUCCESS
+    elif payment.card_number == "2222222222222222":
+        return PaymentStatus.NOT_ENOUGH_MONEY
+    elif payment.card_number == "3333333333333333":
+        return PaymentStatus.ERROR
     elif payment.card_number == "1111111111111111":
         return PaymentStatus.SUCCESS
     elif payment.cvv == 000 or len(payment.card_number) < 16 or payment.card_number == "0000000000000000" or len(payment.card_holder) < 3:

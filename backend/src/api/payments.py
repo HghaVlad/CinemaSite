@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, Security
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
@@ -27,7 +29,7 @@ async def book_showtime(ticket: MakeBooking,  payments_service: PaymentsService 
     return BookingResponse.model_validate(booking)
 
 
-@router.post("/pay/", response_model_include={"status": "success", "url": str})
+@router.post("/pay/", )
 async def pay_showtime(
     payment: UserPayment,
     payments_service: PaymentsService = Depends(get_payments_service),
@@ -38,11 +40,11 @@ async def pay_showtime(
     if status == PaymentStatus.SUCCESS:
         return {"status": "success", "url": ticket_url}
     elif status == PaymentStatus.FAILED:
-        return JSONResponse(status_code=400, content={"status": "failed", "url": ""})
+        return JSONResponse(content={"status": "failed", "url": ""}, status_code=400)
     elif status == PaymentStatus.NOT_ENOUGH_MONEY:
-        return JSONResponse(status=400, content={"status": "not_enough_money", "url": ""})
+        return JSONResponse(content={"status": "not_enough_money", "url": ""}, status_code=400)
 
-    return JSONResponse(status_code=400, content={"status": "error", "url": ""})
+    return JSONResponse(content={"status": "error", "url": ""}, status_code=400)
 
 
 @router.get("/orders/", response_model=List[OrderResponse])
