@@ -11,3 +11,4 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     name = Column(String)
     surname = Column(String)
+    is_admin = Column(Integer, default=0)

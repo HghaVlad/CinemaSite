@@ -68,7 +68,7 @@ services:
         env_file:
             - .env
         volumes:
-            - pdf_data:/app
+            - pdf_data:/pdfs
             
     nginx:
         image: nginx

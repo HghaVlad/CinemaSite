@@ -71,7 +71,10 @@ class PaymentsService:
         
         ticket_url = ""
         if status == PaymentStatus.SUCCESS:
-            ticket_url = await get_ticket_url(booking=booking)
+            try:
+                ticket_url = await get_ticket_url(booking=booking)
+            except:
+                ticket_url = ""
 
             order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id, ticket_url=ticket_url)
             session.add(order)
@@ -79,11 +82,11 @@ class PaymentsService:
             await session.refresh(booking)
         else:
             ticket = await session.get(Ticket, booking.ticket_id)
-            await session.delete(ticket)
             await session.delete(booking)
+            await session.delete(ticket)
             await session.commit()
             
-        return (status, ticket_url)
+        return status, ticket_url
 
     @staticmethod
     async def get_user_orders(user_id: int, session: AsyncSession) -> List[OrderResponse]:
