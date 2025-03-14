@@ -32,15 +32,6 @@ class PaymentsService:
             select(Ticket).where(Ticket.showtime_id == showtime.id, Ticket.row == booking.row_number, Ticket.place == booking.place_number)
         )
         if ticket := result.scalar():
-            result = await session.execute(
-                select(Booking).where(Booking.ticket_id == ticket.id)
-            )
-            another_booking = result.scalar()
-            if another_booking and another_booking.created_at + timedelta(minutes=5) < datetime.utcnow():
-                await session.delete(another_booking)
-                await session.delete(ticket)
-                await session.commit()
-            else:
                 raise HTTPException(status_code=400, detail="Ticket is already booked")
 
 
@@ -72,7 +63,7 @@ class PaymentsService:
         ticket_url = ""
         if status == PaymentStatus.SUCCESS:
             try:
-                ticket_url = await get_ticket_url(booking=booking)
+                ticket_url = await get_ticket_url(booking, session)
             except:
                 ticket_url = ""
 

@@ -39,7 +39,8 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 120
 
     pdf_api_token: str = ""
-    pdf_api_host: str = "0.0.0.0:8001"
+    pdf_api_host: str = "http://localhost/pdf"
+    PDF_FOR_USER_HOST: str = "http://localhost"
 
     jwt_secret: str = "6cTcjscxMGFtSL3099ju7An01vOs2ycxGvRlIssV"
     access_token_expire_minutes: int = 120
