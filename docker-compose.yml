@@ -68,7 +68,7 @@ services:
         container_name: pdf-service
         restart: always
         env_file:
-            - pdf-service/src/.env
+            - .env
         volumes:
             - pdf_data:/app
             

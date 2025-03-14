@@ -32,7 +32,7 @@ app.include_router(users_router, prefix="/api", tags=["users"])
 app.include_router(films_router, prefix="/api", tags=["films"])
 app.include_router(showtime_router, prefix="/api", tags=["showtime"])
 app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
-app.include_router(payments_router, prefix="/payments", tags=["payments"])
+app.include_router(payments_router, prefix="/api/payments", tags=["payments"])
 
 
 openapi_schema = get_openapi(

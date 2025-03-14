@@ -65,6 +65,14 @@ class PaymentsService:
             order = Order(user_id=booking.user_id, ticket_id=booking.ticket_id, payment_id=new_payment.id, ticket_url=ticket_url)
             session.add(order)
             await session.commit()
+        else:
+            ticket = await session.get(Ticket, booking.ticket_id)
+            await session.delete(ticket)
+            await session.delete(booking)
+            await session.commit()
+
+        await session.refresh(booking)
+
             
         return (status, ticket_url)
 
@@ -99,6 +107,7 @@ class PaymentsService:
             order_responses.append(order_response)
 
         return order_responses
+
 
 @lru_cache
 def get_payments_service() -> PaymentsService:

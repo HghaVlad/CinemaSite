@@ -1,3 +1,3 @@
 #!/bin/sh
 alembic upgrade head
-exec python main.py
+exec fastapi run  main.py
