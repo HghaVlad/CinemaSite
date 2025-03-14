@@ -8,6 +8,11 @@ function UserProfilePage() {
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const [orders, setOrders] = useState([]);
+
+  if (!localStorage.getItem("token"))
+  {
+    navigate("/auth");
+  }
   const handleLogout = () => {
     localStorage.removeItem("token");
     alert("Вы вышли из аккаунта");
@@ -139,13 +144,16 @@ function UserProfilePage() {
     
         <h3>История покупок</h3>
         <ul className="purchase-history">
-          {orders.map((order) => (
+          {orders.length > 0? (orders.map((order) => (
             <p className="switch-auth">
               <a href={order.ticket_url} target="_blank" rel="noreferrer">
             {order.showtime.film.name} – {new Date(order.datetime).toLocaleString}
             </a>
           </p>
-          ))}
+          )))
+        :
+        <p>Вы пока что не покупали билеты</p>
+          }
         </ul>
     
         <button className="logout-button" onClick={handleLogout}>
